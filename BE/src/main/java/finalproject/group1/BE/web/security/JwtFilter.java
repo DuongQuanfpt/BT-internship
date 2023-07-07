@@ -4,6 +4,9 @@ import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.UserStatus;
 import finalproject.group1.BE.domain.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,19 +37,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = tokenHeader.substring(7);
 
-        String email = jwtHelper.extractEmail(token);
+        String email = null;
+
+        try{
+            email = jwtHelper.extractEmail(token);
+        }catch (SignatureException | MalformedJwtException |
+                IllegalArgumentException | ExpiredJwtException ex){
+            ex.printStackTrace();
+        }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             User user = userRepository.findByEmail(email).get();
 
-            if(user.getStatus() != UserStatus.LOCKED && user.getDeleteFlag() != DeleteFlag.DELETED){
+            if (jwtHelper.validateToken(token, user)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null
                         , user.getAuthorities());
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            }else {
             }
         }
+        filterChain.doFilter(request,response);
     }
 }

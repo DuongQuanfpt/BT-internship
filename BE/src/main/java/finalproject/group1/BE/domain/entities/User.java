@@ -3,16 +3,19 @@ package finalproject.group1.BE.domain.entities;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
 import finalproject.group1.BE.domain.enums.UserStatus;
+import finalproject.group1.BE.web.config.configa;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -25,7 +28,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "login_id", nullable = false)
+    @Column(name = "login_id", nullable = false,unique = true)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -50,11 +53,11 @@ public class User implements UserDetails {
     private DeleteFlag deleteFlag;
 
     @Column(name = "old_login_id")
-    private Date oldLoginId;
+    private String oldLoginId;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of(new SimpleGrantedAuthority(role.toString()));
     }
 
     @Override
@@ -64,7 +67,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !status.isUserStatus();
     }
 
     @Override
@@ -74,6 +77,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !deleteFlag.isValue();
     }
 }

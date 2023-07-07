@@ -24,19 +24,29 @@ public class JwtHelper {
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
 
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+    }
+
     public String extractEmail(String token) {
-        if (token.isEmpty()) {
-            return null;
-        }
 
-        try {
-            Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-            return claims.getSubject();
-        }catch (UnsupportedJwtException | MalformedJwtException
-                |SignatureException | ExpiredJwtException | IllegalArgumentException exception){
-            return null;
-        }
+//        return extractClaim(token, Claims::getSubject);
+        return extractAllClaims(token).getSubject();
+    }
 
+    public Date extractExpiration(String token) {
+
+//        return extractClaim(token, Claims::getExpiration);
+        return  extractAllClaims(token).getExpiration();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractEmail(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
 }
