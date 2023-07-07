@@ -1,6 +1,5 @@
 package finalproject.group1.BE.domain.enums.converter;
 
-import finalproject.group1.BE.domain.enums.Role;
 import finalproject.group1.BE.domain.enums.UserStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
@@ -10,11 +9,11 @@ public class UserStatusConverter implements AttributeConverter<UserStatus, Boole
 
     @Override
     public Boolean convertToDatabaseColumn(UserStatus userStatus) {
-        return userStatus.isUserStatus();
+        return userStatus.isLocked();
     }
 
     @Override
-    public UserStatus convertToEntityAttribute(Boolean value) {
-        return UserStatus.fromValue(value);
+    public UserStatus convertToEntityAttribute(Boolean isLocked) {
+        return UserStatus.getUserStatus(isLocked);
     }
 }

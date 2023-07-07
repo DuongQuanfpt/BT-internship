@@ -8,18 +8,14 @@ public enum Role {
     USER(false),
     ADMIN(true);
 
-    public boolean isRoleValue() {
-        return roleValue;
-    }
-
-    private boolean roleValue;
+    private boolean isAdmin;
 
     private Role(boolean roleValue) {
-        this.roleValue = roleValue;
+        this.isAdmin = roleValue;
     }
 
-    public static Role fromValue(boolean value) {
-        if(value == true) {
+    public static Role getUserRole(boolean roleValue) {
+        if(roleValue == true) {
             return Role.ADMIN;
         }
         else {
