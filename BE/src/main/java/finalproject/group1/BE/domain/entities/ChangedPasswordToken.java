@@ -3,6 +3,7 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -17,7 +18,7 @@ public class ChangedPasswordToken {
     private String token;
 
     @Column(name = "expire_date", nullable = false)
-    private Date expireDate;
+    private LocalDate expireDate;
 
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)

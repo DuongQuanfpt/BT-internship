@@ -4,6 +4,7 @@ import finalproject.group1.BE.domain.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public class Order {
     private OrderStatus status;
 
     @Column(name = "order_date", nullable = false)
-    private Date orderDate;
+    private LocalDate orderDate;
 
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
