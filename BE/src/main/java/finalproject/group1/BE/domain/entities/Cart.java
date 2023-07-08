@@ -1,0 +1,35 @@
+package finalproject.group1.BE.domain.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.Set;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "Cart_tbl")
+@Data
+public class Cart {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name = "token", nullable = false)
+    private String token;
+
+    @Column(name = "version_no", nullable = false)
+    private int versionNo;
+
+    @Column(name = "total_price", nullable = false)
+    private Float totalPrice;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = true, referencedColumnName = "id")
+    private User owner;
+
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CartDetail> cartDetails;
+}

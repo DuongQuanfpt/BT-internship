@@ -7,14 +7,14 @@ public enum DeleteFlag {
     DELETED(true),
     NORMAL(false);
 
-    private boolean value;
+    private boolean isDeleteFlag;
 
-    private DeleteFlag(boolean value) {
-        this.value = value;
+    private DeleteFlag(boolean isDeleteFlag) {
+        this.isDeleteFlag = isDeleteFlag;
     }
 
-    public static DeleteFlag fromValue(boolean value) {
-        if(value == true) {
+    public static DeleteFlag getDeleteFlag(boolean isDeleteFlag) {
+        if(isDeleteFlag == true) {
             return DeleteFlag.DELETED;
         }
         else {

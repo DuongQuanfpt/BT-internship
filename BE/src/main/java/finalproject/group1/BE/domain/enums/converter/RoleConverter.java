@@ -8,12 +8,12 @@ import jakarta.persistence.Converter;
 public class RoleConverter implements AttributeConverter<Role, Boolean> {
 
     @Override
-    public Boolean convertToDatabaseColumn(Role role) {
-        return role.isRoleValue();
+    public Boolean convertToDatabaseColumn(Role userRole) {
+        return userRole.isAdmin();
     }
 
     @Override
-    public Role convertToEntityAttribute(Boolean value) {
-        return Role.fromValue(value);
+    public Role convertToEntityAttribute(Boolean roleValue) {
+        return Role.getUserRole(roleValue);
     }
 }

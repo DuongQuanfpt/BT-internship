@@ -1,7 +1,6 @@
 package finalproject.group1.BE.domain.enums.converter;
 
 import finalproject.group1.BE.domain.enums.DeleteFlag;
-import finalproject.group1.BE.domain.enums.Role;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -9,11 +8,11 @@ import jakarta.persistence.Converter;
 public class DeleteFlagConverter implements AttributeConverter<DeleteFlag, Boolean> {
     @Override
     public Boolean convertToDatabaseColumn(DeleteFlag deleteFlag) {
-        return deleteFlag.isValue();
+        return deleteFlag.isDeleteFlag();
     }
 
     @Override
-    public DeleteFlag convertToEntityAttribute(Boolean value) {
-        return DeleteFlag.fromValue(value);
+    public DeleteFlag convertToEntityAttribute(Boolean isDeleteFlag) {
+        return DeleteFlag.getDeleteFlag(isDeleteFlag);
     }
 }

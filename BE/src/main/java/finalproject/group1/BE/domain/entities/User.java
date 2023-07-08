@@ -3,12 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
 import finalproject.group1.BE.domain.enums.UserStatus;
-import finalproject.group1.BE.web.config.configa;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,11 +12,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "User_tbl")
 @Data
 public class User implements UserDetails {
@@ -28,7 +26,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "login_id", nullable = false,unique = true)
+    @Column(name = "login_id", nullable = false, unique = true)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -55,9 +53,28 @@ public class User implements UserDetails {
     @Column(name = "old_login_id")
     private String oldLoginId;
 
+    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Set<ChangedPasswordToken> changedPasswordTokens;
+
+    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Set<Order> orders;
+
+    @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Cart cart;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.toString()));
+        return List.of(new SimpleGrantedAuthority("ROLE_"+role.toString()));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override
@@ -67,7 +84,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !status.isUserStatus();
+        return !status.isLocked();
     }
 
     @Override
@@ -77,6 +94,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !deleteFlag.isValue();
+        return !deleteFlag.isDeleteFlag();
     }
 }

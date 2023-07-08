@@ -7,14 +7,14 @@ public enum UserStatus {
     LOCKED(true),
     NORMAL(false);
 
-    private boolean userStatus;
+    private boolean isLocked;
 
-    private UserStatus(boolean userStatus) {
-        this.userStatus = userStatus;
+    private UserStatus(boolean isLocked) {
+        this.isLocked = isLocked;
     }
 
-    public static UserStatus fromValue(boolean value) {
-        if(value == true) {
+    public static UserStatus getUserStatus(boolean isLocked) {
+        if(isLocked == true) {
             return UserStatus.LOCKED;
         }
         else {
