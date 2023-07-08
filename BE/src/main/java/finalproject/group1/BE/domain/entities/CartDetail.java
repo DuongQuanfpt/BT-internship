@@ -15,12 +15,6 @@ public class CartDetail {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id;
 
-//    @Column(name = "cart_id", nullable = false)
-//    private int cartId;
-//
-//    @Column(name = "product_id", nullable = false)
-//    private int productId;
-
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
@@ -29,4 +23,13 @@ public class CartDetail {
 
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id",nullable = false)
+    private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "cart_id",nullable = false)
+    private Cart cart;
+
 }

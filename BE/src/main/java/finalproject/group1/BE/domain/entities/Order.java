@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -15,14 +16,11 @@ import java.util.Date;
 @Data
 public class Order {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "display_id", nullable = false)
     private String displayId;
-
-//    @Column(name = "user_id", nullable = false)
-//    private int userId;
 
     @Column(name = "status", nullable = false)
     private OrderStatus status;
@@ -32,4 +30,14 @@ public class Order {
 
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
+    private OrderShippingDetail shippingDetail;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OrderDetail> orderDetails;
 }

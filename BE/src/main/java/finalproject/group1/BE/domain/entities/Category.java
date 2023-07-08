@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -17,4 +19,10 @@ public class Category {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @OneToMany(mappedBy = "category")
+    private Set<Product> products;
+
+    @OneToOne(mappedBy = "category",cascade = CascadeType.ALL,orphanRemoval = true)
+    private CategoryImg categoryImg;
 }

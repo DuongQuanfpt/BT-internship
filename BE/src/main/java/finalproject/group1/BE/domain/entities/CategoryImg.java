@@ -12,12 +12,14 @@ import lombok.*;
 @Data
 public class CategoryImg {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-//    @Column(name = "category_id", nullable = false)
-//    private int categoryId;
-//
-//    @Column(name = "img_id", nullable = false)
-//    private int imgId;
+    @OneToOne
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
+    private Category category;
+
+    @OneToOne(cascade = CascadeType.ALL , orphanRemoval = true)
+    @JoinColumn(name = "img_id", referencedColumnName = "id")
+    private Image image;
 }

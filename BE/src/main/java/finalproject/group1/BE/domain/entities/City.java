@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -17,4 +19,10 @@ public class City {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @OneToOne(mappedBy = "city")
+    private OrderShippingDetail shippingDetail;
+
+    @OneToMany(mappedBy = "city")
+    private Set<District> districts;
 }

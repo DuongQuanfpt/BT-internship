@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -49,6 +50,15 @@ public class User implements UserDetails {
 
     @Column(name = "old_login_id")
     private String oldLoginId;
+
+    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Set<ChangedPasswordToken> changedPasswordTokens;
+
+    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Set<Order> orders;
+
+    @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Cart cart;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

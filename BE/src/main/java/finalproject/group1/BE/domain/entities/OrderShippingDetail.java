@@ -12,11 +12,8 @@ import lombok.*;
 @Data
 public class OrderShippingDetail {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-//    @Column(name = "order_id", nullable = false)
-//    private int orderId;
 
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
@@ -24,9 +21,16 @@ public class OrderShippingDetail {
     @Column(name = "address", nullable = false)
     private String address;
 
-//    @Column(name = "district_id", nullable = false)
-//    private int districtId;
-//
-//    @Column(name = "city_id", nullable = false)
-//    private int cityId;
+    @OneToOne
+    @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
+    private Order order;
+
+    @OneToOne
+    @JoinColumn(name = "city_id",nullable = false,referencedColumnName = "id")
+    private City city;
+
+    @OneToOne
+    @JoinColumn(name = "district_id",nullable = false)
+    private District district;
+
 }

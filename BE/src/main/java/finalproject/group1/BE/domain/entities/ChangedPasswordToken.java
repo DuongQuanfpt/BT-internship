@@ -19,6 +19,7 @@ public class ChangedPasswordToken {
     @Column(name = "expire_date", nullable = false)
     private Date expireDate;
 
-//    @Column(name = "user_id", nullable = false)
-//    private int userId;
+    @ManyToOne
+    @JoinColumn(name="user_id", nullable=false)
+    private User owner;
 }

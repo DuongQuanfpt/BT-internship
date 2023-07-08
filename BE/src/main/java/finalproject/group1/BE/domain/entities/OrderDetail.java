@@ -12,14 +12,8 @@ import lombok.*;
 @Data
 public class OrderDetail {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-//    @Column(name = "order_id", nullable = false)
-//    private int orderId;
-//
-//    @Column(name = "product_id", nullable = false)
-//    private int productId;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
@@ -29,4 +23,12 @@ public class OrderDetail {
 
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "oder_id",nullable = false)
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 }

@@ -24,4 +24,10 @@ public class Image {
 
     @Column(name = "thumbnail_flag", nullable = false)
     private ThumbnailFlag thumbnailFlag;
+
+    @OneToOne(mappedBy = "image")
+    private CategoryImg categoryImg;
+
+    @OneToOne(mappedBy = "image")
+    private ProductImg productImg;
 }
