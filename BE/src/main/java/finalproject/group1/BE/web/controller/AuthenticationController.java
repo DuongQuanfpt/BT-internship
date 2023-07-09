@@ -1,6 +1,7 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
+import finalproject.group1.BE.web.dto.request.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.UserRegisterRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -30,12 +31,28 @@ public class AuthenticationController {
             List<String> errorList = bindingResult.getAllErrors().stream()
                     .map(objectError -> {
                         FieldError fieldError = (FieldError) objectError;
-                        return fieldError.getField() +" "+ objectError.getDefaultMessage();
+                        return fieldError.getField() + " " + objectError.getDefaultMessage();
                     })
                     .collect(Collectors.toList());
             return ResponseEntity.badRequest().body(errorList);
         }
         userService.saveUser(registerRequest);
         return ResponseEntity.ok().body("");
+    }
+
+    @PostMapping("login")
+    private ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
+            , BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errorList = bindingResult.getAllErrors().stream()
+                    .map(objectError -> {
+                        FieldError fieldError = (FieldError) objectError;
+                        return fieldError.getField() + " " + objectError.getDefaultMessage();
+                    })
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errorList);
+        }
+
+        return ResponseEntity.ok().body(userService.authenticate(loginRequest));
     }
 }

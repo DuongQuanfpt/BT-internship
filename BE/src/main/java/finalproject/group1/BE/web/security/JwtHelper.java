@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtHelper {
@@ -15,7 +17,11 @@ public class JwtHelper {
     private final int DURATION = 1000 * 60 * 60 * 10; //10h
 
     public String createToken(UserDetails userDetails) {
-        return createToken(new HashMap<>(), userDetails.getUsername());
+        HashMap<String,Object> claims = new HashMap<>();
+        claims.put("role",userDetails.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.toString())
+                .collect(Collectors.toList()));
+        return createToken(claims, userDetails.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

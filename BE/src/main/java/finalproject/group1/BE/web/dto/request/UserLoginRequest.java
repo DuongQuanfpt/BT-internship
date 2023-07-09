@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * dto for login user
+ */
 @Getter
 @Setter
 @AllArgsConstructor

@@ -5,8 +5,8 @@ import lombok.Setter;
 
 @Getter
 public enum Role {
-    USER(false),
-    ADMIN(true);
+    ROLE_USER(false),
+    ROLE_ADMIN(true);
 
     private boolean isAdmin;
 
@@ -16,10 +16,10 @@ public enum Role {
 
     public static Role getUserRole(boolean roleValue) {
         if(roleValue == true) {
-            return Role.ADMIN;
+            return Role.ROLE_ADMIN;
         }
         else {
-            return Role.USER;
+            return Role.ROLE_USER;
         }
     }
 }
