@@ -14,7 +14,7 @@ public enum ThumbnailFlag {
     }
 
     public static ThumbnailFlag getThumbnailFlag(boolean isThumbnailFlag) {
-        if(isThumbnailFlag == true) {
+        if(isThumbnailFlag) {
             return ThumbnailFlag.YES;
         }
         else {

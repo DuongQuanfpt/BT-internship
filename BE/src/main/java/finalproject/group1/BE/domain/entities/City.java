@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,5 +26,5 @@ public class City {
     private OrderShippingDetail shippingDetail;
 
     @OneToMany(mappedBy = "city")
-    private Set<District> districts;
+    private List<District> districts= new ArrayList<>();
 }

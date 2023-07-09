@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -21,7 +23,7 @@ public class Category {
     private String name;
 
     @OneToMany(mappedBy = "category")
-    private Set<Product> products;
+    private List<Product> products= new ArrayList<>();
 
     @OneToOne(mappedBy = "category",cascade = CascadeType.ALL,orphanRemoval = true)
     private CategoryImg categoryImg;

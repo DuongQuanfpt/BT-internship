@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -31,5 +33,5 @@ public class Cart {
     private User owner;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CartDetail> cartDetails;
+    private List<CartDetail> cartDetails = new ArrayList<>();
 }

@@ -14,7 +14,7 @@ public enum DeleteFlag {
     }
 
     public static DeleteFlag getDeleteFlag(boolean isDeleteFlag) {
-        if(isDeleteFlag == true) {
+        if(isDeleteFlag) {
             return DeleteFlag.DELETED;
         }
         else {

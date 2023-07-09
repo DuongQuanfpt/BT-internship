@@ -10,9 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -39,25 +37,22 @@ public class User implements UserDetails {
     private LocalDate birthday;
 
     @Column(name = "role", nullable = false)
-    @Enumerated
     private Role role;
 
     @Column(name = "status", nullable = false)
-    @Enumerated
     private UserStatus status;
 
     @Column(name = "delete_flag", nullable = false)
-    @Enumerated
     private DeleteFlag deleteFlag;
 
     @Column(name = "old_login_id")
     private String oldLoginId;
 
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private Set<ChangedPasswordToken> changedPasswordTokens;
+    private List<ChangedPasswordToken> changedPasswordTokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private Set<Order> orders;
+    private List<Order> orders = new ArrayList<>();
 
     @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
     private Cart cart;

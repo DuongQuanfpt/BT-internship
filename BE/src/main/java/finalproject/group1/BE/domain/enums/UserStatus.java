@@ -14,7 +14,7 @@ public enum UserStatus {
     }
 
     public static UserStatus getUserStatus(boolean isLocked) {
-        if(isLocked == true) {
+        if(isLocked) {
             return UserStatus.LOCKED;
         }
         else {

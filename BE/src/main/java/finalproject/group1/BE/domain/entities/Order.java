@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -40,5 +42,5 @@ public class Order {
     private OrderShippingDetail shippingDetail;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<OrderDetail> orderDetails;
+    private List<OrderDetail> orderDetails = new ArrayList<>();
 }

@@ -24,7 +24,7 @@ public class AuthenticationController {
     private UserService userService;
 
     @PostMapping("/register")
-    private ResponseEntity userRegister(@RequestBody @Valid UserRegisterRequest registerRequest
+    public ResponseEntity userRegister(@RequestBody @Valid UserRegisterRequest registerRequest
             , BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -41,7 +41,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("login")
-    private ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
+    public ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<String> errorList = bindingResult.getAllErrors().stream()

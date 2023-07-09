@@ -4,6 +4,8 @@ import finalproject.group1.BE.domain.enums.DeleteFlag;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,13 +37,13 @@ public class Product {
     private Category category;
 
     @OneToMany(mappedBy = "product")
-    private Set<CartDetail> cartDetails;
+    private List<CartDetail> cartDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "product")
-    private Set<OrderDetail> orderDetails;
+    private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProductImg> productImgs;
+    private List<ProductImg> productImgs = new ArrayList<>();
 
 
 }

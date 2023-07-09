@@ -15,7 +15,7 @@ public enum Role {
     }
 
     public static Role getUserRole(boolean roleValue) {
-        if(roleValue == true) {
+        if(roleValue) {
             return Role.ROLE_ADMIN;
         }
         else {
