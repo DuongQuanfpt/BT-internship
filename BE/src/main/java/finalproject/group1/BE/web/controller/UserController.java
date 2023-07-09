@@ -18,12 +18,19 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/list")
-    public ResponseEntity getUserList(@RequestBody UserListRequest userListRequest ,
-                                      @RequestParam("page") @Min(value = 0) int page ,
-                                      @RequestParam("size") int size ,
-                                      @RequestParam(value = "sort",required = false) String sort){
+    public ResponseEntity getUserList(@RequestBody UserListRequest userListRequest,
+                                      @RequestParam("page") @Min(value = 0) int page,
+                                      @RequestParam("size") int size,
+                                      @RequestParam(value = "sort", required = false) String sort) {
 
-        return ResponseEntity.ok().body(userService.getUserList(userListRequest,page,size,sort));
+        return ResponseEntity.ok().body(userService.getUserList(userListRequest, page, size, sort));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/detail")
+    public ResponseEntity getUserDetail(@RequestParam("id") int id) {
+
+        return ResponseEntity.ok().body(userService.getUserDetail(id));
     }
 
 }

@@ -8,9 +8,11 @@ import finalproject.group1.BE.domain.repository.UserRepository;
 import finalproject.group1.BE.web.dto.request.UserListRequest;
 import finalproject.group1.BE.web.dto.request.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.UserRegisterRequest;
+import finalproject.group1.BE.web.dto.response.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.UserListResponse;
 import finalproject.group1.BE.web.dto.response.UserLoginResponse;
 import finalproject.group1.BE.web.exception.UserExistException;
+import finalproject.group1.BE.web.exception.UserNotFoundException;
 import finalproject.group1.BE.web.security.JwtHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +83,13 @@ public class UserService {
         System.out.println(user.getRole());
         String token = jwtHelper.createToken(user);
         return new UserLoginResponse(token);
+    }
+
+    public UserDetailResponse getUserDetail(int id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException());
+
+        UserDetailResponse response = modelMapper.map(user, UserDetailResponse.class);
+        return response;
     }
 
     public List<UserListResponse> getUserList(UserListRequest listRequest

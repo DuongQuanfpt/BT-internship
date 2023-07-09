@@ -39,13 +39,13 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user have been deleted");
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity ConstraintViolationHandler(UserLockException exception , HttpServletRequest request){
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity UserNotFoundHandler(UserNotFoundException exception , HttpServletRequest request){
 //        String language = "en";
 //        UserAlreadyExistException existException = (UserAlreadyExistException) exception;
 //        return  ResponseEntity.ok(messageSource.getMessage("E002"
 //                ,new Object[]{existException.getUsername(),"0"}
 //                ,new Locale(language)));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user not found");
     }
 }
