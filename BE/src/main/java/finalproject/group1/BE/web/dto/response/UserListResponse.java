@@ -10,33 +10,32 @@ import java.time.LocalDate;
 /**
  * dto of response from get user list
  */
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserListResponse {
+
+public interface UserListResponse {
     /**
      * id of user
      */
-    Integer id;
+    Integer getId();
 
     /**
      * email(loginid) of user
      */
-    String email;
+    String getEmail();
 
     /**
      * user name
      */
-    String username;
+    String getUsername();
 
     /**
      * user birthday
      */
-    LocalDate birthday;
+    LocalDate getBirthday();
 
     /**
      * sum price of all user order
      */
-    Float totalPrice;
+    Float getTotalPrice();
+
+
 }

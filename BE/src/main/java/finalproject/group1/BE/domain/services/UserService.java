@@ -15,6 +15,9 @@ import finalproject.group1.BE.web.security.JwtHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,10 +47,10 @@ public class UserService {
     @Value("${validDateFormat}")
     private String dateFormat;
 
-    public void saveUser(UserRegisterRequest registerRequest){
+    public void saveUser(UserRegisterRequest registerRequest) {
         Optional<User> existUser = userRepository.findByEmail(registerRequest.getEmail());
-        if(existUser.isPresent()){
-            if(existUser.get().getStatus() == UserStatus.LOCKED){
+        if (existUser.isPresent()) {
+            if (existUser.get().getStatus() == UserStatus.LOCKED) {
                 throw new UserExistException();
             }
             throw new UserExistException();
@@ -57,7 +60,7 @@ public class UserService {
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
-        newUser.setBirthday( LocalDate.parse(registerRequest.getBirthDay(),formatter));
+        newUser.setBirthday(LocalDate.parse(registerRequest.getBirthDay(), formatter));
 
         newUser.setDeleteFlag(DeleteFlag.NORMAL);
         newUser.setStatus(UserStatus.NORMAL);
@@ -66,7 +69,7 @@ public class UserService {
         userRepository.save(newUser);
     }
 
-    public UserLoginResponse authenticate(UserLoginRequest loginRequest){
+    public UserLoginResponse authenticate(UserLoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
@@ -80,21 +83,45 @@ public class UserService {
         return new UserLoginResponse(token);
     }
 
-    public List<UserListResponse> getUserList(UserListRequest listRequest){
-        List<User> userList = userRepository.findUserBySearchConditions();
-        System.out.println(userList.get(0).getOrders().iterator().hasNext());
+    public List<UserListResponse> getUserList(UserListRequest listRequest
+            , int page, int size, String sortValue) {
 
-        List<UserListResponse> result = userList.stream().map(user -> {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
 
-            UserListResponse response = modelMapper.map(user,UserListResponse.class);
-            float totalPrice = (float) user.getOrders().stream()
-                    .mapToDouble(value -> value.getTotalPrice())
-                    .sum();
-            response.setTotalPrice(totalPrice);
-            return response;
+        String username = null;
+        String email = null;
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+        Float totalPrice = null;
 
-        }).collect(Collectors.toList());
+        if (listRequest.getUsername() != null && !listRequest.getUsername().isEmpty()) {
+            username = listRequest.getUsername();
+        }
 
-        return result;
+        if (listRequest.getEmail() != null && !listRequest.getEmail().isEmpty()) {
+            email = listRequest.getEmail();
+        }
+
+        if (listRequest.getStartDate() != null && !listRequest.getStartDate().isEmpty()) {
+            startDate = LocalDate.parse(listRequest.getStartDate(), formatter);
+        }
+
+        if (listRequest.getEndDate() != null && !listRequest.getEndDate().isEmpty()) {
+            endDate = LocalDate.parse(listRequest.getEndDate(), formatter);
+        }
+
+        if (listRequest.getTotalPrice() != null) {
+            totalPrice = listRequest.getTotalPrice();
+        }
+
+        Pageable pageable;
+        if (sortValue != null && !sortValue.isEmpty()) {
+            pageable = PageRequest.of(page, size, Sort.by(sortValue));
+        } else {
+            pageable = PageRequest.of(page, size);
+        }
+
+        return userRepository.findUserBySearchConditions(username, email,
+                startDate, endDate, totalPrice, pageable);
     }
 }

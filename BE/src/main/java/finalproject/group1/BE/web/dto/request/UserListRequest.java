@@ -24,8 +24,8 @@ public class UserListRequest {
     /**
      * date range to search by user birthday
      */
-    String fromDate;
-    String toDate;
+    String startDate;
+    String endDate;
 
 
     /**
