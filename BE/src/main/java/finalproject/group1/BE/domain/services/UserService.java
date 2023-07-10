@@ -83,8 +83,7 @@ public class UserService {
         return new UserLoginResponse(token);
     }
 
-    public List<UserListResponse> getUserList(UserListRequest listRequest
-            , int page, int size, String sortValue) {
+    public List<UserListResponse> getUserList(UserListRequest listRequest,Pageable pageable) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
 
@@ -112,13 +111,6 @@ public class UserService {
 
         if (listRequest.getTotalPrice() != null) {
             totalPrice = listRequest.getTotalPrice();
-        }
-
-        Pageable pageable;
-        if (sortValue != null && !sortValue.isEmpty()) {
-            pageable = PageRequest.of(page, size, Sort.by(sortValue));
-        } else {
-            pageable = PageRequest.of(page, size);
         }
 
         return userRepository.findUserBySearchConditions(username, email,
