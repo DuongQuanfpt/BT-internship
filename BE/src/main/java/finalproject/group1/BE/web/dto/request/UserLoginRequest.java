@@ -21,7 +21,7 @@ public class UserLoginRequest {
     @NotEmpty
     @Email
     @Size(max = 255)
-    String email;
+    private String email;
 
     /**
      * user password
@@ -29,5 +29,5 @@ public class UserLoginRequest {
     @NotEmpty
     @Size(min = 8, max = 32)
     @UppercaseAndNumber(message = "Must contain an uppercase and a number")
-    String password;
+    private String password;
 }

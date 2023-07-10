@@ -1,5 +1,6 @@
 package finalproject.group1.BE.web.validator;
 
+import finalproject.group1.BE.constant.Constants;
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -11,8 +12,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
 public class DateFormatValidator implements ConstraintValidator<ValidDateFormat, String> {
-    @Value("${validDateFormat}")
-    String dateFormat;
+//    @Value("${validDateFormat}")
+    String dateFormat = Constants.VALID_DATE_FORMAT;
 
     @Override
     public void initialize(ValidDateFormat constraintAnnotation) {

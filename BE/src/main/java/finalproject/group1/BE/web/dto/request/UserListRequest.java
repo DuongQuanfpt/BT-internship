@@ -14,22 +14,22 @@ public class UserListRequest {
     /**
      * username to search
      */
-    String username;
+    private String username;
 
     /**
      * user email (loginId) to search
      */
-    String email;
+    private String email;
 
     /**
      * date range to search by user birthday
      */
-    String startDate;
-    String endDate;
+    private String startDate;
+    private String endDate;
 
 
     /**
      * the minimum total price of user orders
      */
-    Float totalPrice;
+    private Float totalPrice;
 }

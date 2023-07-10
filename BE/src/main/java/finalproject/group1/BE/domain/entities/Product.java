@@ -20,17 +20,20 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "sku", nullable = false, unique = true)
+    @Column(name = "sku", nullable = false, unique = true,length = 50)
     private String sku;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "detail_info", nullable = false)
+    @Column(name = "detail_info", nullable = false,length = 1001)
     private String detailInfo;
 
     @Column(name = "delete_flag", nullable = false)
     private DeleteFlag deleteFlag;
+
+    @Column(name = "price", nullable = false)
+    private Float price;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)

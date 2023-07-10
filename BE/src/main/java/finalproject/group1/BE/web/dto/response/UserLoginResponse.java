@@ -15,5 +15,5 @@ public class UserLoginResponse {
     /**
      * jwt token
      */
-    String token;
+    private String token;
 }

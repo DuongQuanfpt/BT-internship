@@ -18,15 +18,15 @@ public class UserDetailResponse {
     /**
      * email(loginId) of user
      */
-    String email;
+    private String email;
 
     /**
      * user name
      */
-    String username;
+    private String username;
 
     /**
      * user birthday
      */
-    LocalDate birthday;
+    private LocalDate birthday;
 }
