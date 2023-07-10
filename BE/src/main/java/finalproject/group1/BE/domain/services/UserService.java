@@ -9,9 +9,11 @@ import finalproject.group1.BE.domain.repository.UserRepository;
 import finalproject.group1.BE.web.dto.request.UserListRequest;
 import finalproject.group1.BE.web.dto.request.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.UserRegisterRequest;
+import finalproject.group1.BE.web.dto.response.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.UserListResponse;
 import finalproject.group1.BE.web.dto.response.UserLoginResponse;
 import finalproject.group1.BE.web.exception.ExistException;
+import finalproject.group1.BE.web.exception.NotFoundException;
 import finalproject.group1.BE.web.security.JwtHelper;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -68,14 +70,11 @@ public class UserService {
         User user = (User) authentication.getPrincipal();
         user = userRepository.findByEmail(user.getEmail()).get();
 
-        System.out.println(user.getDeleteFlag());
-        System.out.println(user.getStatus());
-        System.out.println(user.getRole());
         String token = jwtHelper.createToken(user);
         return new UserLoginResponse(token);
     }
 
-    public List<UserListResponse> getUserList(UserListRequest listRequest,Pageable pageable) {
+    public List<UserListResponse> getUserList(UserListRequest listRequest, Pageable pageable) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
 
@@ -107,5 +106,11 @@ public class UserService {
 
         return userRepository.findUserBySearchConditions(username, email,
                 startDate, endDate, totalPrice, pageable);
+    }
+
+    public UserDetailResponse getUserDetails(int id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException());
+
+        return modelMapper.map(user, UserDetailResponse.class);
     }
 }
