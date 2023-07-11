@@ -15,7 +15,9 @@ import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -34,12 +36,12 @@ public class ProductService {
     private CategoryRepository categoryRepository;
     private ModelMapper modelMapper;
 
-    public void update(int id , ProductRequest updateRequest){
+    public void update(int id, ProductRequest updateRequest) {
         Product product = productRepository.findById(id).orElseThrow(() -> {
             System.out.println("product not found ");
             throw new NotFoundException();
         });
-        save(updateRequest,product);
+        save(updateRequest, product);
     }
 
     public void save(ProductRequest request, Product product) {
@@ -73,7 +75,7 @@ public class ProductService {
             ProductImg productImg = new ProductImg();
 
             Image image = createImageFromMultipartFile(multipartFile
-                    , false,product.getSku()+"_detail_"+count);
+                    , false, product.getSku() + "_detail_" + count);
             productImg.setProduct(finalProduct);
             productImg.setImage(image);
 
@@ -85,7 +87,7 @@ public class ProductService {
         ProductImg thumbnailImg = new ProductImg();
 
         Image image = createImageFromMultipartFile(request.getThumbnailImage()
-                , true,product.getSku()+"_thumbnail");
+                , true, product.getSku() + "_thumbnail");
         thumbnailImg.setProduct(product);
         thumbnailImg.setImage(image);
 
@@ -99,29 +101,29 @@ public class ProductService {
      * save the multipart file at the image folder(define in Constants file) and
      * create an image entity
      *
-     * @param multipartFile  - the multipart file
-     * @param isThumbnail - whether image is thumbnail
+     * @param multipartFile - the multipart file
+     * @param isThumbnail   - whether image is thumbnail
      * @return an image entity
      * @throws IOException
      */
     private Image createImageFromMultipartFile(MultipartFile multipartFile, boolean isThumbnail, String fileName) {
         String extension = Files.getFileExtension(multipartFile.getOriginalFilename());
         File imgFile = new File(Constants.IMAGE_FOLDER_PATH + fileName + "." + extension);
+
         try (OutputStream os = new FileOutputStream(imgFile)) {
             os.write(multipartFile.getBytes());
+            Image image = new Image();
+            image.setName(multipartFile.getOriginalFilename());
+            image.setPath(imgFile.getPath());
+            image.setThumbnailFlag(ThumbnailFlag.getThumbnailFlag(isThumbnail));
+
+            return image;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        Image image = new Image();
-        image.setName(multipartFile.getOriginalFilename());
-        image.setPath(imgFile.getPath());
-        image.setThumbnailFlag(ThumbnailFlag.getThumbnailFlag(isThumbnail));
-
-        return image;
     }
 
-    public void deleteFile(List<ProductImg> productImgs){
+    public void deleteFile(List<ProductImg> productImgs) {
         productImgs.stream().forEach(productImg -> {
             File file = new File(productImg.getImage().getPath());
             file.delete();
