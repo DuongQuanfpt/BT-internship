@@ -14,4 +14,8 @@ public class CategoryListResponse {
     private int id;
     @NotEmpty
     private String name;
+    @NotEmpty
+    private String path;
+    @NotEmpty
+    private String imageName;
 }
