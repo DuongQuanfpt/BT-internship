@@ -3,6 +3,7 @@ package finalproject.group1.BE.web.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,11 @@ public class CustomExceptionHandler {
     @ExceptionHandler({DisabledException.class , LockedException.class})
     public ResponseEntity DisabledAndLockedHandler(Exception exception,HttpServletRequest request){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user have been deleted");
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity BadCredentialHandler(BadCredentialsException exception,HttpServletRequest request){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid email or password");
     }
 
     @ExceptionHandler(NotFoundException.class)

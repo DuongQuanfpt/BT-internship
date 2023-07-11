@@ -44,8 +44,8 @@ public class AddProductRequest {
     private MultipartFile thumbnailImage;
 
     @NotNull
-//    @ValidFileExtension(extension = Constants.VALID_IMAGE_FILE_EXTENSION
-//            ,message = "invalid file extension")
+    @ValidFileExtension(extension = Constants.VALID_IMAGE_FILE_EXTENSION
+            ,message = "invalid file extension")
     private List<MultipartFile> detailImage;
 
 }
