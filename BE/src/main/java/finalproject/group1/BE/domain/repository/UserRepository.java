@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "   (:username is null or username = :username) and (:email is null or email = :email) " +
             "   and (:startDate is null or birthday >= :startDate) " +
             "   and (:endDate is null or birthday <= :endDate) " +
-            "   and (:totalPrice is null or totalPrice > :totalPrice)" +
+            "   and (:totalPrice is null or totalPrice >= :totalPrice)" +
             " group by u.id ")
     List<UserListResponse> findUserBySearchConditions(@Param("username") String username
             , @Param("email") String email, @Param("startDate") LocalDate startDate
