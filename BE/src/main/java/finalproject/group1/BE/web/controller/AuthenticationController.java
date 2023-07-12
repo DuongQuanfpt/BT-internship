@@ -1,8 +1,8 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
-import finalproject.group1.BE.web.dto.request.UserLoginRequest;
-import finalproject.group1.BE.web.dto.request.UserRegisterRequest;
+import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
+import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

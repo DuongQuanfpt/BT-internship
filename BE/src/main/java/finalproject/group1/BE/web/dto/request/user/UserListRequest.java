@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.request;
+package finalproject.group1.BE.web.dto.request.user;
 
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import lombok.AllArgsConstructor;

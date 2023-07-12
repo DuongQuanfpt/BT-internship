@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.request;
+package finalproject.group1.BE.web.dto.request.product;
 
 import finalproject.group1.BE.constant.Constants;
 import finalproject.group1.BE.web.annotation.ValidFileExtension;

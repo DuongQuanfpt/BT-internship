@@ -1,13 +1,12 @@
 package finalproject.group1.BE.domain.repository;
 
 import finalproject.group1.BE.domain.entities.User;
-import finalproject.group1.BE.web.dto.response.UserListResponse;
+import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;

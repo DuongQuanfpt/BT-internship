@@ -10,14 +10,12 @@ import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
 import finalproject.group1.BE.domain.repository.ProductRepository;
-import finalproject.group1.BE.web.dto.request.ProductRequest;
+import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;

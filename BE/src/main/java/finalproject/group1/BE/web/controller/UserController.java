@@ -1,7 +1,7 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
-import finalproject.group1.BE.web.dto.request.UserListRequest;
+import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;

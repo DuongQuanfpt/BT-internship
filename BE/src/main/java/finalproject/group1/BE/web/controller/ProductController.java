@@ -2,7 +2,7 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.services.ProductService;
-import finalproject.group1.BE.web.dto.request.ProductRequest;
+import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
