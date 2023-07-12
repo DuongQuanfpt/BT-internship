@@ -21,7 +21,7 @@ public class UserLoginRequest {
     @NotEmpty
     @Email
     @Size(max = 255)
-    private String email;
+    private String loginId;
 
     /**
      * user password

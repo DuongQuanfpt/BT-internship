@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/v1/products")
 @AllArgsConstructor
 public class ProductController {
     private ProductService productService;

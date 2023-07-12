@@ -56,7 +56,7 @@ public class ProductService {
         product.setSku(request.getSku());
         product.setName(request.getName());
         product.setPrice(request.getPrice().floatValue());
-        product.setDetailInfo(request.getDetailInfo());
+        product.setDetailInfo(request.getDetail_info());
         product.setCategory(category);
         product.setDeleteFlag(DeleteFlag.NORMAL);
 

@@ -41,7 +41,7 @@ public class ProductRequest {
      */
     @NotEmpty
     @Size(max = 1000)
-    private String detailInfo;
+    private String detail_info;
 
     /**
      * id of category

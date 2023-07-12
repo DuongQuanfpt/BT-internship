@@ -14,12 +14,12 @@ public class UserListRequest {
     /**
      * username to search
      */
-    private String username;
+    private String userName;
 
     /**
      * user email (loginId) to search
      */
-    private String email;
+    private String loginId;
 
     /**
      * date range to search by user birthday
