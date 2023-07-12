@@ -3,6 +3,8 @@ package finalproject.group1.BE.web.controller;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
+import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,7 @@ public class CartController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        return ResponseEntity.ok().body(cartService.addToCart(addRequest,authentication));
+        CartAddResponse response = cartService.addToCart(addRequest,authentication);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
     }
 }

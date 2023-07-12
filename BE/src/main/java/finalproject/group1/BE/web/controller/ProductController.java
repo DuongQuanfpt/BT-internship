@@ -3,8 +3,10 @@ package finalproject.group1.BE.web.controller;
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.response.ResponseDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -31,7 +33,8 @@ public class ProductController {
         }
 
         productService.save(request,new Product());
-        return ResponseEntity.ok().body("");
+        return ResponseEntity.ok().body(ResponseDto.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
     @PutMapping(value = "/{id}",consumes = { MediaType.APPLICATION_JSON_VALUE,
@@ -48,6 +51,7 @@ public class ProductController {
         }
 
         productService.update(id,updateRequest);
-        return ResponseEntity.ok().body("");
+        return ResponseEntity.ok().body(ResponseDto.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 }

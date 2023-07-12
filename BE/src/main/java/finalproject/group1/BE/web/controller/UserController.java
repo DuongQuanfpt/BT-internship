@@ -2,6 +2,9 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
+import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
+import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -29,14 +32,16 @@ public class UserController {
                     .collect(Collectors.toList());
             return ResponseEntity.badRequest().body(errors);
         }
-        return ResponseEntity.ok().body(userService.getUserList(userListRequest,pageable));
+        List<UserListResponse> response =  userService.getUserList(userListRequest,pageable);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity getUserDetail(@PathVariable(value = "id") int id){
 
-        return ResponseEntity.ok().body(userService.getUserDetails(id));
+        UserDetailResponse response = userService.getUserDetails(id);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
     }
 
 }
