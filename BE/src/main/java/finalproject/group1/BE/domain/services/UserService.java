@@ -61,7 +61,7 @@ public class UserService {
         User newUser = modelMapper.map(registerRequest, User.class);
 
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        newUser.setBirthday(LocalDate.parse(registerRequest.getBirthDay(), formatter));
+        newUser.setBirthDay(LocalDate.parse(registerRequest.getBirthDay(), formatter));
         newUser.setDeleteFlag(DeleteFlag.NORMAL);
         newUser.setStatus(UserStatus.NORMAL);
         newUser.setRole(Role.ROLE_USER);
@@ -98,16 +98,12 @@ public class UserService {
             email = listRequest.getLoginId();
         }
 
-        if (listRequest.getStartDate() != null && !listRequest.getStartDate().isEmpty()) {
-            try{
-                startDate = LocalDate.parse(listRequest.getStartDate(), formatter);
-            }catch (DateTimeParseException e){
-                //do nothing
-            }
+        if (listRequest.getStartBirthDay() != null && !listRequest.getStartBirthDay().isEmpty()) {
+            startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
         }
 
-        if (listRequest.getEndDate() != null && !listRequest.getEndDate().isEmpty()) {
-            endDate = LocalDate.parse(listRequest.getEndDate(), formatter);
+        if (listRequest.getEndBirthDay() != null && !listRequest.getEndBirthDay().isEmpty()) {
+            endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
         }
 
         if (listRequest.getTotalPrice() != null) {
@@ -120,6 +116,9 @@ public class UserService {
 
     public UserDetailResponse getUserDetails(int id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException());
+
+        TypeMap<User, UserDetailResponse> propertyMapper = modelMapper.createTypeMap(User.class, UserDetailResponse.class);
+        propertyMapper.addMapping(User::getEmail, UserDetailResponse::setLoginId);//map loginId to email
 
         return modelMapper.map(user, UserDetailResponse.class);
     }

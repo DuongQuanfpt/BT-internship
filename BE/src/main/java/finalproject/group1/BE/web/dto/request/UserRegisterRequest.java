@@ -36,7 +36,7 @@ public class UserRegisterRequest {
      */
     @NotEmpty
     @Size(min = 8, max = 255)
-    String username;
+    String userName;
 
     /**
      * user birthday

@@ -22,11 +22,12 @@ public class DateFormatValidator implements ConstraintValidator<ValidDateFormat,
 
     @Override
     public boolean isValid(String date, ConstraintValidatorContext constraintValidatorContext) {
-        DateFormat format;
 
         try {
-            format = new SimpleDateFormat(dateFormat);
+            DateFormat format = new SimpleDateFormat(dateFormat);
+            format.setLenient(false);
             format.parse(date);
+
         } catch (ParseException | IllegalArgumentException| NullPointerException e) {
             e.printStackTrace();
             return false;

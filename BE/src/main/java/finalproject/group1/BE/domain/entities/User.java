@@ -31,10 +31,10 @@ public class User implements UserDetails {
     private String password;
 
     @Column(name = "username", nullable = false)
-    private String username;
+    private String userName;
 
     @Column(name = "birthday", nullable = false)
-    private LocalDate birthday;
+    private LocalDate birthDay;
 
     @Column(name = "role", nullable = false)
     private Role role;
@@ -56,6 +56,10 @@ public class User implements UserDetails {
 
     @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
     private Cart cart;
+
+    public String getUserName() {
+        return userName;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

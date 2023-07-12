@@ -17,16 +17,16 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
-    @Query("select u.email as email " +
+    @Query("select u.email as loginId " +
             "   ,u.id as id " +
-            "   ,u.username as username " +
-            "   ,u.birthday as birthday " +
+            "   ,u.userName as userName " +
+            "   ,u.birthDay as birthDay " +
             "   ,case when (o is null) then 0 else SUM(o.totalPrice) end as totalPrice " +
             " from User u left join u.orders as o " +
             " where (o is null or o is not null) and" +
-            "   (:username is null or username = :username) and (:email is null or email = :email) " +
-            "   and (:startDate is null or birthday >= :startDate) " +
-            "   and (:endDate is null or birthday <= :endDate) " +
+            "   (:username is null or userName = :username) and (:email is null or email = :email) " +
+            "   and (:startDate is null or birthDay >= :startDate) " +
+            "   and (:endDate is null or birthDay <= :endDate) " +
             "   and (:totalPrice is null or totalPrice >= :totalPrice or :totalPrice = 0)" +
             " group by u.id ")
     List<UserListResponse> findUserBySearchConditions(@Param("username") String username

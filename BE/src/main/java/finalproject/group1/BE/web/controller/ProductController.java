@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class ProductController {
     private ProductService productService;
 
-    @PostMapping(value = "/add",consumes = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(value = "/create",consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity addProduct(@Valid @ModelAttribute ProductRequest request
             , BindingResult bindingResult){
@@ -34,10 +34,10 @@ public class ProductController {
         return ResponseEntity.ok().body("");
     }
 
-    @PutMapping(value = "/update",consumes = { MediaType.APPLICATION_JSON_VALUE,
+    @PutMapping(value = "/{id}",consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity updateProduct(@Valid @ModelAttribute ProductRequest updateRequest
-            ,@RequestParam(name = "id") int id
+    public ResponseEntity updateProduct(@PathVariable(name = "id") int id
+            ,@Valid @ModelAttribute ProductRequest updateRequest
             ,BindingResult bindingResult){
 
         if(bindingResult.hasErrors()){

@@ -1,5 +1,6 @@
 package finalproject.group1.BE.web.dto.request;
 
+import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,8 +25,11 @@ public class UserListRequest {
     /**
      * date range to search by user birthday
      */
-    private String startDate;
-    private String endDate;
+    @ValidDateFormat(message = "invalid date format")
+    private String startBirthDay;
+
+    @ValidDateFormat(message = "invalid date format")
+    private String endBirthDay ;
 
 
     /**
