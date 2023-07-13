@@ -19,10 +19,10 @@ public class CartDetail {
     private int quantity;
 
     @Column(name = "price", nullable = false)
-    private Float price;
+    private float price;
 
     @Column(name = "total_price", nullable = false)
-    private Float totalPrice;
+    private float totalPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id",nullable = false)

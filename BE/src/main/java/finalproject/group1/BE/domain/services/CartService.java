@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 public class CartService {
     private CartRepository cartRepository;
 
+    private CartDetailsRepository cartDetailsRepository;
+
     private ProductRepository productRepository;
 
     private ImageRepository imageRepository;
@@ -67,33 +69,30 @@ public class CartService {
         }
 
         //calculate new total prices of product in cart
-        float currentTotal = (float) cart.getCartDetails().stream()
-                .mapToDouble(value -> value.getTotalPrice())
-                .sum();
+        float currentTotal = cartDetailsRepository.sumTotalPriceByCartId(cart.getId());
         cart.setTotalPrice(currentTotal + (product.getPrice() * request.getQuantity()));
 
-        //check if detail list of cart have been updated
-        if (!updateDetailInCart(request, cart.getCartDetails())) {
-            //if not updated
-            //create new cart detail
-            CartDetail newCartDetail = new CartDetail();
-            newCartDetail.setProduct(product);
-            newCartDetail.setPrice(product.getPrice());
-            newCartDetail.setQuantity(request.getQuantity());
-            newCartDetail.setTotalPrice(product.getPrice() * request.getQuantity());
+        //save cart to DB
+        Cart savedCart = cartRepository.save(cart);
 
-            //add new cart detail to cart
+        CartDetail newCartDetail = cartDetailsRepository.findByProductIdAndCartId(product.getId()
+                , savedCart.getId()).orElse(null);
+        //get detail in cart , if not exist create new cart detail
+        if (newCartDetail == null){
+            newCartDetail = new CartDetail();
             newCartDetail.setCart(cart);
-            cart.getCartDetails().add(newCartDetail);
+            newCartDetail.setProduct(product);
         }
+        newCartDetail.setPrice(product.getPrice());
+        newCartDetail.setQuantity((newCartDetail.getQuantity()) + request.getQuantity());
+        newCartDetail.setTotalPrice(newCartDetail.getTotalPrice() +
+                (product.getPrice() * request.getQuantity()));
 
-        //save to DB
-        cartRepository.save(cart);
+        //save cart detail to db
+        cartDetailsRepository.save(newCartDetail);
 
         //calculate quantity and create response
-        int quantity = cart.getCartDetails().stream()
-                .mapToInt(value -> value.getQuantity())
-                .sum();
+        int quantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
         CartAddResponse response = new CartAddResponse();
         response.setQuantity(quantity);
         response.setVersionNo(cart.getVersionNo());
@@ -112,19 +111,19 @@ public class CartService {
         }
 
         CartInfoResponse response = new CartInfoResponse();
-        if(cart != null){
+        if (cart != null) {
             response.setId(cart.getId());
             response.setTotalPrice(cart.getTotalPrice());
             response.setVersionNo(cart.getVersionNo());
 
             response.setDetails(cart.getCartDetails().stream().map(cartDetail -> {
-                CartInfoDetailResponse  detailResponse = new CartInfoDetailResponse();
-                detailResponse = modelMapper.map(cartDetail,CartInfoDetailResponse.class);
+                CartInfoDetailResponse detailResponse = new CartInfoDetailResponse();
+                detailResponse = modelMapper.map(cartDetail, CartInfoDetailResponse.class);
 
                 ImageData imageData = imageRepository.findProductThumbnail(cartDetail.getProduct().getId());
                 detailResponse.setImageName(imageData.getName());
                 detailResponse.setImagePath(imageData.getPath());
-                return  detailResponse;
+                return detailResponse;
             }).collect(Collectors.toList()));
         }
 
