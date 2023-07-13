@@ -4,19 +4,23 @@ import finalproject.group1.BE.domain.entities.Cart;
 import finalproject.group1.BE.domain.entities.CartDetail;
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.entities.User;
-import finalproject.group1.BE.domain.repository.CartDetailsRepository;
-import finalproject.group1.BE.domain.repository.CartRepository;
-import finalproject.group1.BE.domain.repository.ProductRepository;
+import finalproject.group1.BE.domain.repository.*;
+import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartInfoRequest;
 import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
+import finalproject.group1.BE.web.dto.response.cart.CartInfoDetailResponse;
+import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +28,11 @@ public class CartService {
     private CartRepository cartRepository;
 
     private ProductRepository productRepository;
+
+    private ImageRepository imageRepository;
+
+    private ModelMapper modelMapper;
+
 
     /**
      * add product to new cart , or existing cart if it exists
@@ -63,9 +72,9 @@ public class CartService {
                 .sum();
         cart.setTotalPrice(currentTotal + (product.getPrice() * request.getQuantity()));
 
-        //check if cart detail list have been updated
-        if (!updateDetailInCart(request, cart.getCartDetails())){
-            //if not
+        //check if detail list of cart have been updated
+        if (!updateDetailInCart(request, cart.getCartDetails())) {
+            //if not updated
             //create new cart detail
             CartDetail newCartDetail = new CartDetail();
             newCartDetail.setProduct(product);
@@ -89,6 +98,36 @@ public class CartService {
         response.setQuantity(quantity);
         response.setVersionNo(cart.getVersionNo());
         response.setToken(cart.getToken());
+        return response;
+    }
+
+    public CartInfoResponse getCartInfo(CartInfoRequest request, Authentication authentication) {
+        User loginUser;
+        Cart cart = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+            cart = cartRepository.findByOwnerId(loginUser.getId()).orElseThrow(null);
+        } else if (request.getToken() != null) { //check if there are token
+            cart = cartRepository.findByToken(request.getToken()).orElse(null);
+        }
+
+        CartInfoResponse response = new CartInfoResponse();
+        if(cart != null){
+            response.setId(cart.getId());
+            response.setTotalPrice(cart.getTotalPrice());
+            response.setVersionNo(cart.getVersionNo());
+
+            response.setDetails(cart.getCartDetails().stream().map(cartDetail -> {
+                CartInfoDetailResponse  detailResponse = new CartInfoDetailResponse();
+                detailResponse = modelMapper.map(cartDetail,CartInfoDetailResponse.class);
+
+                ImageData imageData = imageRepository.findProductThumbnail(cartDetail.getProduct().getId());
+                detailResponse.setImageName(imageData.getName());
+                detailResponse.setImagePath(imageData.getPath());
+                return  detailResponse;
+            }).collect(Collectors.toList()));
+        }
+
         return response;
     }
 

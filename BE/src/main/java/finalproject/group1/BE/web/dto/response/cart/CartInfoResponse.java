@@ -5,26 +5,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
- * dto response of add-cart
+ * dto response of cart info
  */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartAddResponse {
-    /**
-     * token cart for unauthenticated user
-     */
-    String token;
+public class CartInfoResponse {
+    Integer id;
 
-    /**
-     * total quantity of products in cart
-     */
-    Integer quantity;
+    Float totalPrice;
 
-    /**
-     * cart version
-     */
     Integer versionNo;
+
+    List<CartInfoDetailResponse> details;
 }

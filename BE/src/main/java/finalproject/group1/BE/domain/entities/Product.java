@@ -39,11 +39,11 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @OneToMany(mappedBy = "product")
-    private List<CartDetail> cartDetails = new ArrayList<>();
-
-    @OneToMany(mappedBy = "product")
-    private List<OrderDetail> orderDetails = new ArrayList<>();
+//    @OneToMany(mappedBy = "product")
+//    private List<CartDetail> cartDetails = new ArrayList<>();
+//
+//    @OneToMany(mappedBy = "product")
+//    private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImg> productImgs = new ArrayList<>();

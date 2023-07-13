@@ -32,7 +32,8 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/users/register",
-                                "/api/v1/users/login","/api/v1/add-cart").permitAll()
+                                "/api/v1/users/login","/api/v1/add-cart",
+                                "/api/v1/cart-info").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
