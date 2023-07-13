@@ -116,7 +116,8 @@ public class CartService {
             response.setTotalPrice(cart.getTotalPrice());
             response.setVersionNo(cart.getVersionNo());
 
-            response.setDetails(cart.getCartDetails().stream().map(cartDetail -> {
+            List<CartDetail> cartDetails = cartDetailsRepository.findByCartId(cart.getId());
+            response.setDetails(cartDetails.stream().map(cartDetail -> {
                 CartInfoDetailResponse detailResponse = new CartInfoDetailResponse();
                 detailResponse = modelMapper.map(cartDetail, CartInfoDetailResponse.class);
 
@@ -129,28 +130,4 @@ public class CartService {
 
         return response;
     }
-
-
-    /**
-     * update the detail in cart which have the same product id as in request
-     *
-     * @param request
-     * @param cartDetails - detail list of the cart
-     * @return true if the list has been updated , otherwise false
-     */
-    private boolean updateDetailInCart(CartAddRequest request, List<CartDetail> cartDetails) {
-        AtomicBoolean isUpdate = new AtomicBoolean(false);
-        cartDetails.stream().forEach(cartDetail -> {
-            if (cartDetail.getProduct().getId() == request.getProductId()) {
-                isUpdate.set(true);
-
-                cartDetail.setQuantity(cartDetail.getQuantity() + request.getQuantity());
-                cartDetail.setTotalPrice(cartDetail.getQuantity() * cartDetail.getPrice());
-            }
-        });
-
-        return isUpdate.get();
-    }
-
-
 }
