@@ -24,11 +24,11 @@ public class CartDetail {
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id",nullable = false)
     private Product product;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id",nullable = false)
     private Cart cart;
 

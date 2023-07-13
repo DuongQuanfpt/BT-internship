@@ -6,19 +6,18 @@ import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
 import finalproject.group1.BE.domain.enums.UserStatus;
 import finalproject.group1.BE.domain.repository.UserRepository;
-import finalproject.group1.BE.web.dto.request.UserListRequest;
-import finalproject.group1.BE.web.dto.request.UserLoginRequest;
-import finalproject.group1.BE.web.dto.request.UserRegisterRequest;
-import finalproject.group1.BE.web.dto.response.UserDetailResponse;
-import finalproject.group1.BE.web.dto.response.UserListResponse;
-import finalproject.group1.BE.web.dto.response.UserLoginResponse;
+import finalproject.group1.BE.web.dto.request.user.UserListRequest;
+import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
+import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
+import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
+import finalproject.group1.BE.web.dto.response.user.UserListResponse;
+import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import finalproject.group1.BE.web.security.JwtHelper;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.modelmapper.TypeMap;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,20 +41,24 @@ public class UserService {
     private JwtHelper jwtHelper;
 
     public void saveUser(UserRegisterRequest registerRequest) {
-        Optional<User> existUser = userRepository.findByEmail(registerRequest.getEmail());
+        Optional<User> existUser = userRepository.findByEmail(registerRequest.getLoginId());
         if (existUser.isPresent()) {
             if (existUser.get().getStatus() == UserStatus.LOCKED) {
                 throw new ExistException();
             }
             throw new ExistException();
         }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
+
+        TypeMap<UserRegisterRequest, User> propertyMapper = modelMapper.createTypeMap(UserRegisterRequest.class, User.class);
+        propertyMapper.addMappings(mapper -> mapper.skip(User::setId)); //skip map for id
+        propertyMapper.addMapping(UserRegisterRequest::getLoginId, User::setEmail);//map loginId to email
+
         User newUser = modelMapper.map(registerRequest, User.class);
 
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
-        newUser.setBirthday(LocalDate.parse(registerRequest.getBirthDay(), formatter));
-
+        newUser.setBirthDay(LocalDate.parse(registerRequest.getBirthDay(), formatter));
         newUser.setDeleteFlag(DeleteFlag.NORMAL);
         newUser.setStatus(UserStatus.NORMAL);
         newUser.setRole(Role.ROLE_USER);
@@ -65,7 +68,7 @@ public class UserService {
 
     public UserLoginResponse authenticate(UserLoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.getEmail(), loginRequest.getPassword()));
+                loginRequest.getLoginId(), loginRequest.getPassword()));
 
         User user = (User) authentication.getPrincipal();
         user = userRepository.findByEmail(user.getEmail()).get();
@@ -84,20 +87,20 @@ public class UserService {
         LocalDate endDate = null;
         Float totalPrice = null;
 
-        if (listRequest.getUsername() != null && !listRequest.getUsername().isEmpty()) {
-            username = listRequest.getUsername();
+        if (listRequest.getUserName() != null && !listRequest.getUserName().isEmpty()) {
+            username = listRequest.getUserName();
         }
 
-        if (listRequest.getEmail() != null && !listRequest.getEmail().isEmpty()) {
-            email = listRequest.getEmail();
+        if (listRequest.getLoginId() != null && !listRequest.getLoginId().isEmpty()) {
+            email = listRequest.getLoginId();
         }
 
-        if (listRequest.getStartDate() != null && !listRequest.getStartDate().isEmpty()) {
-            startDate = LocalDate.parse(listRequest.getStartDate(), formatter);
+        if (listRequest.getStartBirthDay() != null && !listRequest.getStartBirthDay().isEmpty()) {
+            startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
         }
 
-        if (listRequest.getEndDate() != null && !listRequest.getEndDate().isEmpty()) {
-            endDate = LocalDate.parse(listRequest.getEndDate(), formatter);
+        if (listRequest.getEndBirthDay() != null && !listRequest.getEndBirthDay().isEmpty()) {
+            endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
         }
 
         if (listRequest.getTotalPrice() != null) {
@@ -110,6 +113,9 @@ public class UserService {
 
     public UserDetailResponse getUserDetails(int id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException());
+
+        TypeMap<User, UserDetailResponse> propertyMapper = modelMapper.createTypeMap(User.class, UserDetailResponse.class);
+        propertyMapper.addMapping(User::getEmail, UserDetailResponse::setLoginId);//map loginId to email
 
         return modelMapper.map(user, UserDetailResponse.class);
     }

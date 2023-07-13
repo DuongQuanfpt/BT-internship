@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.request;
+package finalproject.group1.BE.web.dto.request.user;
 
 import finalproject.group1.BE.web.annotation.UppercaseAndNumber;
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
@@ -20,7 +20,7 @@ public class UserRegisterRequest {
     @NotEmpty
     @Email
     @Size(max = 255)
-    private String email;
+    private String loginId;
 
     /**
      * user password
@@ -36,7 +36,7 @@ public class UserRegisterRequest {
      */
     @NotEmpty
     @Size(min = 8, max = 255)
-    String username;
+    String userName;
 
     /**
      * user birthday

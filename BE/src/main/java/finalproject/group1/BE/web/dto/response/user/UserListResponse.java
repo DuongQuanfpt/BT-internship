@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.response;
+package finalproject.group1.BE.web.dto.response.user;
 
 import java.time.LocalDate;
 
@@ -15,17 +15,17 @@ public interface UserListResponse {
     /**
      * email(loginid) of user
      */
-    String getEmail();
+    String getLoginId();
 
     /**
      * user name
      */
-    String getUsername();
+    String getUserName();
 
     /**
      * user birthday
      */
-    LocalDate getBirthday();
+    LocalDate getBirthDay();
 
     /**
      * sum price of all user order

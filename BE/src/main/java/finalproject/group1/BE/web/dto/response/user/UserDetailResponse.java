@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.response;
+package finalproject.group1.BE.web.dto.response.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,15 +18,15 @@ public class UserDetailResponse {
     /**
      * email(loginId) of user
      */
-    private String email;
+    private String loginId;
 
     /**
      * user name
      */
-    private String username;
+    private String userName;
 
     /**
      * user birthday
      */
-    private LocalDate birthday;
+    private LocalDate birthDay;
 }

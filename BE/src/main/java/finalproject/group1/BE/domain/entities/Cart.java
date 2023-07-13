@@ -2,6 +2,7 @@ package finalproject.group1.BE.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "token", nullable = false)
+    @Column(name = "token", nullable = true)
     private String token;
 
     @Column(name = "version_no", nullable = false)

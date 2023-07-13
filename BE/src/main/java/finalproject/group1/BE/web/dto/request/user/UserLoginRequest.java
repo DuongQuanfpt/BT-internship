@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.request;
+package finalproject.group1.BE.web.dto.request.user;
 
 import finalproject.group1.BE.web.annotation.UppercaseAndNumber;
 import jakarta.validation.constraints.Email;
@@ -21,7 +21,7 @@ public class UserLoginRequest {
     @NotEmpty
     @Email
     @Size(max = 255)
-    private String email;
+    private String loginId;
 
     /**
      * user password
