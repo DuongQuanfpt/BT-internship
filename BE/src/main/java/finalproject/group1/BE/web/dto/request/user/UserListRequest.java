@@ -3,6 +3,7 @@ package finalproject.group1.BE.web.dto.request.user;
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserListRequest {
     /**
      * username to search
