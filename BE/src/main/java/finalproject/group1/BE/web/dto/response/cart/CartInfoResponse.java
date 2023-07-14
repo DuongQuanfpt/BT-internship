@@ -15,11 +15,23 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CartInfoResponse {
+    /**
+     * cart id
+     */
     Integer id;
 
+    /**
+     * total product price
+     */
     Float totalPrice;
 
+    /**
+     * cart version
+     */
     Integer versionNo;
 
+    /**
+     * list of cart detail
+     */
     List<CartInfoDetailResponse> details;
 }
