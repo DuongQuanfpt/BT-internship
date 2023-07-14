@@ -3,10 +3,11 @@ package finalproject.group1.BE.web.controller;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
-import finalproject.group1.BE.web.dto.request.cart.CartInfoRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDto;
 import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
 import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
+import finalproject.group1.BE.web.dto.response.cart.CartSyncResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class CartController {
     }
 
     @PostMapping("/cart-info")
-    public ResponseEntity cartInfo(@Valid @RequestBody CartInfoRequest request,
+    public ResponseEntity cartInfo(@Valid @RequestBody CartRequest request,
                                    Authentication authentication,
                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -50,6 +51,22 @@ public class CartController {
             return ResponseEntity.badRequest().body(errors);
         }
         CartInfoResponse response = cartService.getCartInfo(request,authentication);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
+    }
+
+    @PostMapping("/sync-cart")
+    public  ResponseEntity syncCart(@Valid @RequestBody CartRequest request,
+                                    Authentication authentication,
+                                    BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        User loginUser = (User) authentication.getPrincipal();
+        CartSyncResponse response = cartService.synccart(request,loginUser);
         return ResponseEntity.ok().body(ResponseDto.success(response));
     }
 }

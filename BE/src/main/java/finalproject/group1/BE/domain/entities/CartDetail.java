@@ -3,6 +3,8 @@ package finalproject.group1.BE.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @Setter
@@ -32,4 +34,16 @@ public class CartDetail {
     @JoinColumn(name = "cart_id",nullable = false)
     private Cart cart;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CartDetail that = (CartDetail) o;
+        return Objects.equals(product.getId(), that.product.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(product.getId());
+    }
 }
