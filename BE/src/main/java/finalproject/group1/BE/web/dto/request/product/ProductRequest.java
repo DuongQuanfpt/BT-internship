@@ -1,6 +1,6 @@
 package finalproject.group1.BE.web.dto.request.product;
 
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.web.annotation.ValidFileExtension;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;

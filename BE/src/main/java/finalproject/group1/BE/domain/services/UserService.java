@@ -1,6 +1,6 @@
 package finalproject.group1.BE.domain.services;
 
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
@@ -112,7 +112,8 @@ public class UserService {
     }
 
     public UserDetailResponse getUserDetails(int id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException());
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user not found"));
 
         TypeMap<User, UserDetailResponse> propertyMapper = modelMapper.createTypeMap(User.class, UserDetailResponse.class);
         propertyMapper.addMapping(User::getEmail, UserDetailResponse::setLoginId);//map loginId to email

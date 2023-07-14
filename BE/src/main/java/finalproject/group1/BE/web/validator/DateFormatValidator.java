@@ -1,15 +1,13 @@
 package finalproject.group1.BE.web.validator;
 
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 
 public class DateFormatValidator implements ConstraintValidator<ValidDateFormat, String> {
 //    @Value("${validDateFormat}")
