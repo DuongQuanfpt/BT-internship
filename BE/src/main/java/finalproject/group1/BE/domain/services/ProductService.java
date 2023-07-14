@@ -84,8 +84,8 @@ public class ProductService {
     public void save(ProductRequest request, Product product) {
         Product existProduct = productRepository.findBySku(request.getSku()).orElse(null);
         if (existProduct != null && existProduct.getId() != product.getId()) {
-            System.out.println("product sku exist");
-            throw new ExistException();
+
+            throw new ExistException("Product with that sku already exist");
         }
         Category category = categoryRepository.findById(request.getCategory_id())
                 .orElseThrow(() -> new NotFoundException("Product Not Found"));
