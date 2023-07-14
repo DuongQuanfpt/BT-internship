@@ -45,7 +45,7 @@ public class CartService {
      */
     public CartAddResponse addToCart(CartAddRequest request, Authentication authentication) {
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new NotFoundException());
+                .orElseThrow(() -> new NotFoundException("Product Not Found"));
         Cart cart = null;
         User loginUser = null;
         if (authentication != null) {  //check if there are user login

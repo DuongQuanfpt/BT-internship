@@ -11,6 +11,7 @@ import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
 import finalproject.group1.BE.domain.repository.ProductRepository;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.response.Product.ProductListResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -34,10 +36,41 @@ public class ProductService {
     private CategoryRepository categoryRepository;
     private ModelMapper modelMapper;
 
+
+    public void getAllProducts() {
+
+    }
+
+    public List<ProductListResponse> getProductDetails(String sku) {
+        Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
+            throw new NotFoundException("Product not found with SKU: " + sku);
+        }));
+        List<ProductListResponse> listProductsDTO = productDetail.stream()
+                .map(product ->
+                {
+                    ProductListResponse response = modelMapper.map(product, ProductListResponse.class);
+
+                    List<String> imagePaths = product.getProductImgs().stream()
+                            .map(productImg -> productImg.getImage().getPath())
+                            .collect(Collectors.toList());
+                    response.setImagePath(imagePaths);
+
+                    List<String> imageNames = product.getProductImgs().stream()
+                            .map(productImg -> productImg.getImage().getName())
+                            .collect(Collectors.toList());
+                    response.setImageName(imageNames);
+
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return listProductsDTO;
+    }
+
+
     public void update(int id, ProductRequest updateRequest) {
         Product product = productRepository.findById(id).orElseThrow(() -> {
-            System.out.println("product not found ");
-            throw new NotFoundException();
+            throw new NotFoundException("Product Not Found");
         });
         save(updateRequest, product);
     }
@@ -49,7 +82,7 @@ public class ProductService {
             throw new ExistException();
         }
         Category category = categoryRepository.findById(request.getCategory_id())
-                .orElseThrow(() -> new NotFoundException());
+                .orElseThrow(() -> new NotFoundException("Product Not Found"));
 
         product.setSku(request.getSku());
         product.setName(request.getName());
