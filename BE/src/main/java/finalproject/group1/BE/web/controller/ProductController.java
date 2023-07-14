@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 public class ProductController {
     private ProductService productService;
 
+
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/create",consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
