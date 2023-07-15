@@ -44,6 +44,7 @@ public class CartService {
      * @param authentication
      * @return response
      */
+    @Transactional
     public CartAddResponse addToCart(CartAddRequest request, Authentication authentication) {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new NotFoundException("Product Not Found"));
@@ -59,6 +60,7 @@ public class CartService {
         //if there are no existing cart , create new
         if (cart == null) {
             cart = new Cart();
+            cart.setTotalPrice(0f);
             if (loginUser != null) {// if there are login user , set owner
                 cart.setOwner(loginUser);
             } else {// if not set token
@@ -69,16 +71,13 @@ public class CartService {
             cart.setVersionNo(cart.getVersionNo() + 1);
         }
 
-        //calculate new total prices of product in cart
-        float currentTotal = cartDetailsRepository.sumTotalPriceByCartId(cart.getId());
-        cart.setTotalPrice(currentTotal + (product.getPrice() * request.getQuantity()));
-
         //save cart to DB
         Cart savedCart = cartRepository.save(cart);
 
         //get detail in cart ,
         CartDetail newCartDetail = cartDetailsRepository.findByProductIdAndCartId(product.getId()
-                , savedCart.getId()).orElse(null);
+                , cart.getId()).orElse(null);
+
         //if not exist create new cart detail
         if (newCartDetail == null) {
             newCartDetail = new CartDetail();
@@ -87,11 +86,14 @@ public class CartService {
             newCartDetail.setPrice(product.getPrice());
         }
         newCartDetail.setQuantity((newCartDetail.getQuantity()) + request.getQuantity());
-        newCartDetail.setTotalPrice(newCartDetail.getTotalPrice() +
-                (newCartDetail.getPrice()* request.getQuantity()));
+        newCartDetail.setTotalPrice((newCartDetail.getPrice()* newCartDetail.getQuantity()));
 
         //save cart detail to db
         cartDetailsRepository.save(newCartDetail);
+
+        //calculate new total prices of product in cart
+        savedCart.setTotalPrice( cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
+        savedCart = cartRepository.save(savedCart);
 
         //calculate quantity and create response
         int quantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
@@ -101,7 +103,7 @@ public class CartService {
         response.setToken(cart.getToken());
         return response;
     }
-
+    @Transactional
     public CartInfoResponse getCartInfo(CartRequest request, Authentication authentication) {
         User loginUser;
         Cart cart = null;
