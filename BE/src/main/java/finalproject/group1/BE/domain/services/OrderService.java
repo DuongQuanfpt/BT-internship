@@ -54,7 +54,7 @@ public class OrderService {
         order.setStatus(OrderStatus.NEW);
         order.setOrderDate(LocalDate.now());
         order.setTotalPrice((float) cartDetailList.stream()
-                .mapToDouble(detail -> detail.getTotalPrice()).sum());
+                .mapToDouble(detail -> detail.getQuantity()*detail.getProduct().getPrice()).sum());
 
         //save order
         Order savedOrder = orderRepository.save(order);
@@ -85,7 +85,7 @@ public class OrderService {
 
         orderShippingDetailRepository.save(shippingDetail);
 
-        //delete cart
+        //delete user cart
         cartDetailsRepository.deleteAll(cartDetailList);
         cartRepository.delete(cart);
 
@@ -98,6 +98,6 @@ public class OrderService {
         CreateOrderResponse response = new CreateOrderResponse();
         response.setDisplayId(savedOrder.getDisplayId());
         response.setTotalPrice(savedOrder.getTotalPrice());
-        return response;
+        return null;
     }
 }

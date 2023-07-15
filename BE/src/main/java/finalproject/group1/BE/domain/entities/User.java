@@ -54,9 +54,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
 
-    @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private Cart cart;
-
     public String getUserName() {
         return userName;
     }
