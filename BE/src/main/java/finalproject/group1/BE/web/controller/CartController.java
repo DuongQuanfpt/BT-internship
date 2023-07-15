@@ -28,8 +28,8 @@ public class CartController {
 
     @PostMapping("/add-cart")
     public ResponseEntity addToCart(@Valid @RequestBody CartAddRequest addRequest,
-                                    Authentication authentication,
-                                    BindingResult bindingResult) {
+                                    BindingResult bindingResult,
+                                    Authentication authentication) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }
@@ -40,13 +40,10 @@ public class CartController {
 
     @PostMapping("/cart-info")
     public ResponseEntity cartInfo(@Valid @RequestBody CartRequest request,
-                                   Authentication authentication,
-                                   BindingResult bindingResult) {
+                                   BindingResult bindingResult,
+                                   Authentication authentication) {
         if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+            throw new ValidationException(bindingResult);
         }
         CartInfoResponse response = cartService.getCartInfo(request,authentication);
         return ResponseEntity.ok().body(ResponseDto.success(response));
@@ -54,13 +51,10 @@ public class CartController {
 
     @PostMapping("/sync-cart")
     public  ResponseEntity syncCart(@Valid @RequestBody CartRequest request,
-                                    Authentication authentication,
-                                    BindingResult bindingResult){
+                                    BindingResult bindingResult,
+                                    Authentication authentication){
         if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+            throw new ValidationException(bindingResult);
         }
 
         User loginUser = (User) authentication.getPrincipal();
