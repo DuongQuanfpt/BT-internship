@@ -25,11 +25,11 @@ public class OrderShippingDetail {
     @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
     private Order order;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "city_id",nullable = false,referencedColumnName = "id")
     private City city;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "district_id",nullable = false)
     private District district;
 
