@@ -19,25 +19,25 @@ import java.util.List;
 public class CustomExceptionHandler {
     @ExceptionHandler(ExistException.class)
     public ResponseEntity ExistExceptionHandler(ExistException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("400","", exception.getMessage());
+        ErrorResponse response = new ErrorResponse("400","Already Exist", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler({DisabledException.class, LockedException.class})
     public ResponseEntity DisabledAndLockedHandler(Exception exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("401","",exception.getMessage());
+        ErrorResponse response = new ErrorResponse("401","","User have been deleted");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity BadCredentialHandler(BadCredentialsException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("401","",exception.getMessage());
+        ErrorResponse response = new ErrorResponse("401","","Incorrect email or password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity NotFoundHandler(NotFoundException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("400","",exception.getMessage());
+        ErrorResponse response = new ErrorResponse("400","Not Found",exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

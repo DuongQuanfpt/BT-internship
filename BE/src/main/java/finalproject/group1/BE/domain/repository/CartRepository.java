@@ -12,4 +12,6 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
 
     Optional<Cart> findByToken(String token);
 
+    Optional<Cart> findByOwnerIdAndVersionNo(int id , int versionNo);
+
 }
