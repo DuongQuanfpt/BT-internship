@@ -22,9 +22,6 @@ public class City {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToOne(mappedBy = "city")
-    private OrderShippingDetail shippingDetail;
-
-    @OneToMany(mappedBy = "city")
-    private List<District> districts= new ArrayList<>();
+//    @OneToMany(mappedBy = "city")
+//    private List<District> districts= new ArrayList<>();
 }
