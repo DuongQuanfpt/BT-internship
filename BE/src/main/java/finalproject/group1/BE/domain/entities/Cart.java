@@ -33,6 +33,6 @@ public class Cart {
     @JoinColumn(name = "user_id", nullable = true, referencedColumnName = "id")
     private User owner;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart")
     private List<CartDetail> cartDetails = new ArrayList<>();
 }

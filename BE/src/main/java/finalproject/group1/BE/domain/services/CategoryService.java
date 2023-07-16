@@ -1,7 +1,7 @@
 package finalproject.group1.BE.domain.services;
 
 import com.google.common.io.Files;
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.domain.entities.*;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;

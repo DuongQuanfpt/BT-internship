@@ -5,6 +5,7 @@ import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDto;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
+import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,13 +31,7 @@ public class AuthenticationController {
             , BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            List<String> errorList = bindingResult.getAllErrors().stream()
-                    .map(objectError -> {
-                        FieldError fieldError = (FieldError) objectError;
-                        return fieldError.getField() + " " + objectError.getDefaultMessage();
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errorList);
+            throw new ValidationException(bindingResult);
         }
         userService.saveUser(registerRequest);
         return ResponseEntity.ok().body(ResponseDto.build()
@@ -47,13 +42,7 @@ public class AuthenticationController {
     public ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            List<String> errorList = bindingResult.getAllErrors().stream()
-                    .map(objectError -> {
-                        FieldError fieldError = (FieldError) objectError;
-                        return fieldError.getField() + " " + objectError.getDefaultMessage();
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errorList);
+            throw new ValidationException(bindingResult);
         }
 
         UserLoginResponse response = userService.authenticate(loginRequest);

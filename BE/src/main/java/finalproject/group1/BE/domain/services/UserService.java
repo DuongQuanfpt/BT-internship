@@ -1,6 +1,6 @@
 package finalproject.group1.BE.domain.services;
 
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
@@ -44,9 +44,9 @@ public class UserService {
         Optional<User> existUser = userRepository.findByEmail(registerRequest.getLoginId());
         if (existUser.isPresent()) {
             if (existUser.get().getStatus() == UserStatus.LOCKED) {
-                throw new ExistException();
+                throw new ExistException("account is locked");
             }
-            throw new ExistException();
+            throw new ExistException("account already exist");
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);

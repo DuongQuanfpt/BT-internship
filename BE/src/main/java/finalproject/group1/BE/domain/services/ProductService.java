@@ -1,7 +1,8 @@
 package finalproject.group1.BE.domain.services;
 
 import com.google.common.io.Files;
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
+import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.entities.Image;
 import finalproject.group1.BE.domain.entities.Product;
@@ -16,9 +17,12 @@ import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -31,13 +35,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProductService {
 
-    private ProductRepository productRepository;
-    private CategoryRepository categoryRepository;
-    private ModelMapper modelMapper;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
 
+    @Value("${file.upload.product-directory}")
+    private String fileUploadDirectory;
 
     public List<ProductListResponse> getProductList(ProductListRequest listRequest, Pageable pageable) {
 
@@ -100,13 +106,12 @@ public class ProductService {
         save(updateRequest, product);
     }
 
+    @Transactional
     public void save(ProductRequest request, Product product) {
-        Product existProduct = productRepository.findBySku(request.getSku()).orElseThrow(() -> {
-            throw new NotFoundException("Product doesn't exist");
-        });
-        if (existProduct.getId() != product.getId()) {
-            System.out.println("product sku exist");
-            throw new ExistException();
+        Product existProduct = productRepository.findBySku(request.getSku()).orElse(null);
+        if (existProduct != null && existProduct.getId() != product.getId()) {
+
+            throw new ExistException("Product with that sku already exist");
         }
         Category category = categoryRepository.findById(request.getCategory_id())
                 .orElseThrow(() -> new NotFoundException("Category Not Found"));
@@ -122,7 +127,8 @@ public class ProductService {
         //check if product has images
         if (!productImgs.isEmpty()) {
             //delete existing image
-            deleteFile(productImgs);
+            productImgs.stream().forEach(productImg -> FileCommons.delete(
+                    productImg.getImage().getPath(),fileUploadDirectory));
             productImgs.clear();
         }
 
@@ -132,8 +138,12 @@ public class ProductService {
         productImgs.addAll(request.getDetailImage().stream().map(multipartFile -> {
             ProductImg productImg = new ProductImg();
 
-            Image image = createImageFromMultipartFile(multipartFile
-                    , false, product.getSku() + "_detail_" + count);
+            Image image = new Image();
+            image.setName(multipartFile.getOriginalFilename());
+            image.setPath(FileCommons.uploadFile(multipartFile, product.getSku() +
+                    Constants.DETAIL_IMAGE_PREFIX + count,fileUploadDirectory));
+            image.setThumbnailFlag(ThumbnailFlag.NO);
+
             productImg.setProduct(finalProduct);
             productImg.setImage(image);
 
@@ -144,47 +154,18 @@ public class ProductService {
         //add thumbnail image to product
         ProductImg thumbnailImg = new ProductImg();
 
-        Image image = createImageFromMultipartFile(request.getThumbnailImage()
-                , true, product.getSku() + "_thumbnail");
+        Image image = new Image();
+        image.setName(request.getThumbnailImage().getOriginalFilename());
+        image.setPath(FileCommons.uploadFile(request.getThumbnailImage(), product.getSku()
+                + Constants.THUMBNAIL_IMAGE_PREFIX,fileUploadDirectory));
+        image.setThumbnailFlag(ThumbnailFlag.YES);
+
         thumbnailImg.setProduct(product);
         thumbnailImg.setImage(image);
 
         productImgs.add(thumbnailImg);
         product.setProductImgs(productImgs);
-
+        // save changes to db
         productRepository.save(product);
-    }
-
-    /**
-     * save the multipart file at the image folder(define in Constants file) and
-     * create an image entity
-     *
-     * @param multipartFile - the multipart file
-     * @param isThumbnail   - whether image is thumbnail
-     * @return an image entity
-     * @throws IOException
-     */
-    private Image createImageFromMultipartFile(MultipartFile multipartFile, boolean isThumbnail, String fileName) {
-        String extension = Files.getFileExtension(multipartFile.getOriginalFilename());
-        File imgFile = new File(Constants.IMAGE_FOLDER_PATH + fileName + "." + extension);
-
-        try (OutputStream os = new FileOutputStream(imgFile)) {
-            os.write(multipartFile.getBytes());
-            Image image = new Image();
-            image.setName(multipartFile.getOriginalFilename());
-            image.setPath(imgFile.getPath());
-            image.setThumbnailFlag(ThumbnailFlag.getThumbnailFlag(isThumbnail));
-
-            return image;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void deleteFile(List<ProductImg> productImgs) {
-        productImgs.stream().forEach(productImg -> {
-            File file = new File(productImg.getImage().getPath());
-            file.delete();
-        });
     }
 }

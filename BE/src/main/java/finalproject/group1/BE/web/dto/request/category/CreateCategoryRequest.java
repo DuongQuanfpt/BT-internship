@@ -1,6 +1,6 @@
 package finalproject.group1.BE.web.dto.request.category;
 
-import finalproject.group1.BE.constant.Constants;
+import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.web.annotation.ValidFileExtension;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

@@ -6,6 +6,7 @@ import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -49,11 +50,8 @@ public class ProductController {
             MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity addProduct(@Valid @ModelAttribute ProductRequest request
             , BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
         }
 
         productService.save(request,new Product());

@@ -5,6 +5,7 @@ import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDto;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
+import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +27,8 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity getUserList( @RequestBody @Valid UserListRequest userListRequest ,
                                        BindingResult bindingResult,Pageable pageable){
-        if(bindingResult.hasErrors()){
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
         }
         List<UserListResponse> response =  userService.getUserList(userListRequest,pageable);
         return ResponseEntity.ok().body(ResponseDto.success(response));
