@@ -10,12 +10,14 @@ import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
 import finalproject.group1.BE.domain.repository.ProductRepository;
+import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
-import finalproject.group1.BE.web.dto.response.Product.ProductListResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,34 +39,57 @@ public class ProductService {
     private ModelMapper modelMapper;
 
 
-    public void getAllProducts() {
+    public List<ProductListResponse> getProductList(ProductListRequest listRequest, Pageable pageable) {
 
+        Integer categoryId = null;
+        String sku = null;
+        String name = null;
+
+        if (listRequest.getCategory() != null) {
+            categoryId = listRequest.getCategory().getId();
+        }
+
+        if (listRequest.getSku() != null && !listRequest.getSku().isEmpty()) {
+            sku = listRequest.getSku();
+        }
+
+        if (listRequest.getName() != null && !listRequest.getName().isEmpty()) {
+            name = listRequest.getName();
+        }
+
+        List<ProductListResponse> productListResponses =  productRepository.searchProductByConditions(categoryId, sku, name, pageable);
+        // Print the returned data
+        for (ProductListResponse response : productListResponses) {
+            System.out.println(response);
+        }
+
+        return productListResponses;
     }
 
-    public List<ProductListResponse> getProductDetails(String sku) {
+
+    public ProductListResponse getProductDetails(String sku) {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
             throw new NotFoundException("Product not found with SKU: " + sku);
         }));
-        List<ProductListResponse> listProductsDTO = productDetail.stream()
-                .map(product ->
-                {
-                    ProductListResponse response = modelMapper.map(product, ProductListResponse.class);
+        ProductListResponse productDetailsDTO = new ProductListResponse();
+        productDetailsDTO.setId(productDetail.get().getId());
+        productDetailsDTO.setSku(productDetail.get().getSku());
+        productDetailsDTO.setName(productDetail.get().getName());
+        productDetailsDTO.setDetailInfo(productDetail.get().getDetailInfo());
+        productDetailsDTO.setPrice(productDetail.get().getPrice());
 
-                    List<String> imagePaths = product.getProductImgs().stream()
-                            .map(productImg -> productImg.getImage().getPath())
-                            .collect(Collectors.toList());
-                    response.setImagePath(imagePaths);
-
-                    List<String> imageNames = product.getProductImgs().stream()
-                            .map(productImg -> productImg.getImage().getName())
-                            .collect(Collectors.toList());
-                    response.setImageName(imageNames);
-
-                    return response;
-                })
+        List<String> imageNames = productDetail.get().getProductImgs().stream()
+                .map(productImg -> productImg.getImage().getName())
                 .collect(Collectors.toList());
+        productDetailsDTO.setImageName(imageNames);
 
-        return listProductsDTO;
+        List<String> imagePaths = productDetail.get().getProductImgs().stream()
+                .map(productImg -> productImg.getImage().getPath())
+                .collect(Collectors.toList());
+        productDetailsDTO.setImagePath(imagePaths);
+
+        modelMapper.map(productDetail, ProductListResponse.class);
+        return productDetailsDTO;
     }
 
 
@@ -76,13 +101,15 @@ public class ProductService {
     }
 
     public void save(ProductRequest request, Product product) {
-        Product existProduct = productRepository.findBySku(request.getSku()).orElse(null);
-        if (existProduct != null && existProduct.getId() != product.getId()) {
+        Product existProduct = productRepository.findBySku(request.getSku()).orElseThrow(() -> {
+            throw new NotFoundException("Product doesn't exist");
+        });
+        if (existProduct.getId() != product.getId()) {
             System.out.println("product sku exist");
             throw new ExistException();
         }
         Category category = categoryRepository.findById(request.getCategory_id())
-                .orElseThrow(() -> new NotFoundException("Product Not Found"));
+                .orElseThrow(() -> new NotFoundException("Category Not Found"));
 
         product.setSku(request.getSku());
         product.setName(request.getName());

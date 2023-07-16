@@ -112,7 +112,7 @@ public class UserService {
     }
 
     public UserDetailResponse getUserDetails(int id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException());
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User Not Found"));
 
         TypeMap<User, UserDetailResponse> propertyMapper = modelMapper.createTypeMap(User.class, UserDetailResponse.class);
         propertyMapper.addMapping(User::getEmail, UserDetailResponse::setLoginId);//map loginId to email

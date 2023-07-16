@@ -43,7 +43,7 @@ public class AuthenticationController {
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {

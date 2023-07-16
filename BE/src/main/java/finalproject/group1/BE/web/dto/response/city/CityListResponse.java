@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.response.Category;
+package finalproject.group1.BE.web.dto.response.city;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -10,12 +10,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryListResponse {
+public class CityListResponse {
     private int id;
     @NotEmpty
     private String name;
-    @NotEmpty
-    private String path;
-    @NotEmpty
-    private String imageName;
 }

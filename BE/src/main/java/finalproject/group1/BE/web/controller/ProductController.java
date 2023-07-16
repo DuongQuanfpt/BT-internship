@@ -2,10 +2,13 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.services.ProductService;
+import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +25,24 @@ import java.util.stream.Collectors;
 public class ProductController {
     private ProductService productService;
 
+    @GetMapping("/search")
+    public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
+                                         BindingResult bindingResult, Pageable pageable) {
+        if(bindingResult.hasErrors()){
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
+        List<ProductListResponse> response = productService.getProductList(productListRequest,pageable);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
+    }
 
+    @GetMapping("/{sku}")
+    public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku) {
+        ProductListResponse response = productService.getProductDetails(sku);
+        return ResponseEntity.ok().body(ResponseDto.success(response));
+    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/create",consumes = { MediaType.APPLICATION_JSON_VALUE,

@@ -5,8 +5,8 @@ import finalproject.group1.BE.constant.Constants;
 import finalproject.group1.BE.domain.entities.*;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
-import finalproject.group1.BE.web.dto.response.Category.CategoryListResponse;
-import finalproject.group1.BE.web.dto.request.Category.CreateCategoryRequest;
+import finalproject.group1.BE.web.dto.response.category.CategoryListResponse;
+import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
@@ -88,5 +88,4 @@ public class CategoryService {
             File file = new File(categoryImg.getImage().getPath());
             file.delete();
     }
-
 }
