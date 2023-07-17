@@ -100,9 +100,6 @@ public class ProductService {
         List<ProductImg> productImgs = product.getProductImgs();
         //check if product has images
         if (!productImgs.isEmpty()) {
-            //delete existing image
-            productImgs.stream().forEach(productImg -> FileCommons.delete(
-                    productImg.getImage().getPath(),fileUploadDirectory));
             productImgs.clear();
         }
 
