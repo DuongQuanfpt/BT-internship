@@ -27,12 +27,9 @@ public class UserListRequest {
     /**
      * date range to search by user birthday
      */
-    @ValidDateFormat(message = "invalid date format")
+
     private String startBirthDay;
-
-    @ValidDateFormat(message = "invalid date format")
     private String endBirthDay ;
-
 
     /**
      * the minimum total price of user orders
