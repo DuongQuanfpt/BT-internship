@@ -1,6 +1,5 @@
 package finalproject.group1.BE.domain.services;
 
-import com.google.common.io.Files;
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.domain.entities.Category;
@@ -10,25 +9,25 @@ import finalproject.group1.BE.domain.entities.ProductImg;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
+import finalproject.group1.BE.domain.repository.ImageRepository;
 import finalproject.group1.BE.domain.repository.ProductRepository;
+import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.response.PageableDTO;
+import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,61 +39,65 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
 
     @Value("${file.upload.product-directory}")
     private String fileUploadDirectory;
 
-    public List<ProductListResponse> getProductList(ProductListRequest listRequest, Pageable pageable) {
+    public ProductListResponse getProductList(ProductListRequest listRequest, Pageable pageable) {
 
         Integer categoryId = null;
-        String sku = null;
-        String name = null;
+        String searchKey = null;
+        ProductListResponse productListResponse = new ProductListResponse();
+        PageableDTO pageableDTO = new PageableDTO();
 
-        if (listRequest.getCategory() != null) {
-            categoryId = listRequest.getCategory().getId();
+        if (listRequest.getCategoryId() != null) {
+            categoryId = listRequest.getCategoryId();
         }
 
-        if (listRequest.getSku() != null && !listRequest.getSku().isEmpty()) {
-            sku = listRequest.getSku();
+        if (listRequest.getSearchKey() != null && !listRequest.getSearchKey().isEmpty()) {
+            searchKey = listRequest.getSearchKey();
         }
 
-        if (listRequest.getName() != null && !listRequest.getName().isEmpty()) {
-            name = listRequest.getName();
-        }
+        Page<Product> results = productRepository.searchProductByConditions(categoryId, searchKey, pageable);
+        pageableDTO.setTotalPages(results.getTotalPages());
+        pageableDTO.setPageSize(results.getSize());
+        pageableDTO.setPageNumber(results.getNumber());
 
-        List<ProductListResponse> productListResponses =  productRepository.searchProductByConditions(categoryId, sku, name, pageable);
-        // Print the returned data
-        for (ProductListResponse response : productListResponses) {
-            System.out.println(response);
-        }
+        List<ProductResponse> productResponse = results.stream()
+                .map(product -> {
+                    ProductResponse response = modelMapper.map(product, ProductResponse.class);
 
-        return productListResponses;
+                    ImageData imageData = imageRepository.findProductThumbnail(product.getId());
+                    response.setImageName(imageData.getName());
+                    response.setImagePath(imageData.getPath());
+                    return response;
+                }).collect(Collectors.toList());
+
+        productListResponse.setProductResponses(productResponse);
+        productListResponse.setPageableDTO(pageableDTO);
+        return productListResponse;
+
     }
 
 
-    public ProductListResponse getProductDetails(String sku) {
+    public ProductDetailResponse getProductDetails(String sku) {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
             throw new NotFoundException("Product not found with SKU: " + sku);
         }));
-        ProductListResponse productDetailsDTO = new ProductListResponse();
+        ProductDetailResponse productDetailsDTO = new ProductDetailResponse();
         productDetailsDTO.setId(productDetail.get().getId());
         productDetailsDTO.setSku(productDetail.get().getSku());
         productDetailsDTO.setName(productDetail.get().getName());
         productDetailsDTO.setDetailInfo(productDetail.get().getDetailInfo());
         productDetailsDTO.setPrice(productDetail.get().getPrice());
 
-        List<String> imageNames = productDetail.get().getProductImgs().stream()
-                .map(productImg -> productImg.getImage().getName())
-                .collect(Collectors.toList());
-        productDetailsDTO.setImageName(imageNames);
+        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
 
-        List<String> imagePaths = productDetail.get().getProductImgs().stream()
-                .map(productImg -> productImg.getImage().getPath())
-                .collect(Collectors.toList());
-        productDetailsDTO.setImagePath(imagePaths);
+        productDetailsDTO.setImageName(imagesData.stream().map(imageData -> imageData.getName()).collect(Collectors.toList()));
+        productDetailsDTO.setImagePath(imagesData.stream().map(imageData -> imageData.getPath()).collect(Collectors.toList()));
 
-        modelMapper.map(productDetail, ProductListResponse.class);
         return productDetailsDTO;
     }
 

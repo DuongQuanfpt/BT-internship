@@ -4,7 +4,7 @@ import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.services.CategoryService;
 import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
 import finalproject.group1.BE.web.dto.response.category.CategoryListResponse;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,15 +24,15 @@ public class CategoryController {
     @GetMapping("/search")
     public ResponseEntity getAllCategories() {
         List<CategoryListResponse> response = categoryService.getAllCategories();
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping(value = "/add", consumes = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(value = "/create", consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity addCategory(@Valid @ModelAttribute CreateCategoryRequest request) {
         categoryService.createCategory(request, new Category());
-        return ResponseEntity.ok().body(ResponseDto.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
+        return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
     }
 
 }

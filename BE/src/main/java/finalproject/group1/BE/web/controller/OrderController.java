@@ -1,10 +1,9 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.User;
-import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.domain.services.OrderService;
 import finalproject.group1.BE.web.dto.request.order.CreateOrderRequest;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -33,6 +32,6 @@ public class OrderController {
         }
 
         User loginUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok().body(ResponseDto.success(orderService.createOrder(request,loginUser)));
+        return ResponseEntity.ok().body(ResponseDTO.success(orderService.createOrder(request,loginUser)));
     }
 }

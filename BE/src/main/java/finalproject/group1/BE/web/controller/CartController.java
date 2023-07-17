@@ -4,7 +4,7 @@ import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
 import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
 import finalproject.group1.BE.web.dto.response.cart.CartSyncResponse;
@@ -15,9 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,7 +32,7 @@ public class CartController {
         }
 
         CartAddResponse response = cartService.addToCart(addRequest, authentication);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
     @PostMapping("/cart-info")
@@ -46,7 +43,7 @@ public class CartController {
             throw new ValidationException(bindingResult);
         }
         CartInfoResponse response = cartService.getCartInfo(request,authentication);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
     @PostMapping("/sync-cart")
@@ -59,6 +56,6 @@ public class CartController {
 
         User loginUser = (User) authentication.getPrincipal();
         CartSyncResponse response = cartService.synccart(request,loginUser);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 }

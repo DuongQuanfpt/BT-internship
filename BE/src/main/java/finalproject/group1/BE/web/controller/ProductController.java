@@ -4,8 +4,10 @@ import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.product.ProductResponse;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 public class ProductController {
     private ProductService productService;
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
                                          BindingResult bindingResult, Pageable pageable) {
         if(bindingResult.hasErrors()){
@@ -35,14 +37,14 @@ public class ProductController {
                     .collect(Collectors.toList());
             return ResponseEntity.badRequest().body(errors);
         }
-        List<ProductListResponse> response = productService.getProductList(productListRequest,pageable);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        ProductListResponse productListResponse = productService.getProductList(productListRequest,pageable);
+        return ResponseEntity.ok().body(ResponseDTO.success(productListResponse));
     }
 
     @GetMapping("/{sku}")
     public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku) {
-        ProductListResponse response = productService.getProductDetails(sku);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        ProductDetailResponse response = productService.getProductDetails(sku);
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -55,7 +57,7 @@ public class ProductController {
         }
 
         productService.save(request,new Product());
-        return ResponseEntity.ok().body(ResponseDto.build()
+        return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
@@ -74,7 +76,7 @@ public class ProductController {
         }
 
         productService.update(id,updateRequest);
-        return ResponseEntity.ok().body(ResponseDto.build()
+        return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 }

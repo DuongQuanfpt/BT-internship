@@ -15,13 +15,9 @@ public class ProductListRequest {
     /**
      * category (categoryId) to search
      */
-    private Category category;
+    private Integer categoryId;
     /**
-     * product sku to search
+     * search_key to search
      */
-    private String sku;
-    /**
-     * product name to search
-     */
-    private String name;
+    private String searchKey;
 }

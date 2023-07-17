@@ -1,7 +1,7 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.CityService;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.dto.response.city.CityListResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +17,9 @@ import java.util.List;
 public class CityController {
     private CityService cityService;
 
-    @GetMapping()
+    @GetMapping("/search")
     public ResponseEntity getCitiesList() {
         List<CityListResponse> response = cityService.getAllCities();
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 }
