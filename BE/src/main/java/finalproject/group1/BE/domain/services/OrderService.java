@@ -120,11 +120,13 @@ public class OrderService {
     public OrderSearchResponse searchOrder(SearchOrderRequest request, User loginUser, Pageable pageable) {
 
         LocalDate orderDate = null;
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
-            orderDate = LocalDate.parse(request.getOrderDate(), formatter);
-        } catch (DateTimeParseException e) {
-            //do nothing
+        if(request.getOrderDate() !=null){
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
+                orderDate = LocalDate.parse(request.getOrderDate(), formatter);
+            } catch (DateTimeParseException e) {
+                //do nothing
+            }
         }
 
         Integer loginUserId = null;
@@ -135,7 +137,8 @@ public class OrderService {
         OrderStatus status = OrderStatus.getOrderStatus(Integer.valueOf(request.getStatus()));
 
         List<Order> result = orderRepository.findOrderBySearchConditions(
-                request.getProductName(), request.getSku(), request.getOrderId(), orderDate, status, request.getUserName(), loginUserId);
+                request.getProductName(), request.getSku(), request.getOrderId(),
+                orderDate, status, request.getUserName(), loginUserId,pageable);
         List<OrderResponse> orderResponses = result.stream().map(order -> {
             OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
             orderResponse.setUsername(order.getOwner().getUsername());
