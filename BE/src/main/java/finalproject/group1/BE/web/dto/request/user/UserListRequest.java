@@ -31,7 +31,6 @@ public class UserListRequest {
     private String startBirthDay;
     private String endBirthDay ;
 
-
     /**
      * the minimum total price of user orders
      */
