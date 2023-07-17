@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "   ,case when (o is null) then 0 else SUM(o.totalPrice) end as totalPrice " +
             " from User u left join u.orders as o " +
             " where (o is null or o is not null) and" +
-            "   (:username is null or userName = :username) and (:email is null or email = :email) " +
+            "   (:username is null or u.userName like %:username% ) and (:email is null or u.email like %:email%) " +
             "   and (:startDate is null or birthDay >= :startDate) " +
             "   and (:endDate is null or birthDay <= :endDate) " +
             "   and (:totalPrice is null or totalPrice >= :totalPrice or :totalPrice = 0)" +
