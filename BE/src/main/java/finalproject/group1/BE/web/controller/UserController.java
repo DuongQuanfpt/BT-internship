@@ -2,7 +2,7 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.exception.ValidationException;
@@ -15,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -31,7 +30,7 @@ public class UserController {
             throw new ValidationException(bindingResult);
         }
         List<UserListResponse> response =  userService.getUserList(userListRequest,pageable);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -39,7 +38,7 @@ public class UserController {
     public ResponseEntity getUserDetail(@PathVariable(value = "id") int id){
 
         UserDetailResponse response = userService.getUserDetails(id);
-        return ResponseEntity.ok().body(ResponseDto.success(response));
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
 }

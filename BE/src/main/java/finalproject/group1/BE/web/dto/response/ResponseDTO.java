@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 @Setter
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseDto<T> {
+public class ResponseDTO<T> {
     /** HTTP Status */
     @JsonIgnore
     private HttpStatus httpStatus = HttpStatus.OK;
@@ -46,8 +46,8 @@ public class ResponseDto<T> {
      * @param <T> data type mixed
      * @return new instant
      */
-    public static <T> ResponseDto<T> build() {
-        return new ResponseDto<>();
+    public static <T> ResponseDTO<T> build() {
+        return new ResponseDTO<>();
     }
 
     /**
@@ -56,8 +56,8 @@ public class ResponseDto<T> {
      * @param data data
      * @return ResponseDto
      */
-    public static <T> ResponseDto<T> success(T data) {
-        ResponseDto<T> res = new ResponseDto<T>();
+    public static <T> ResponseDTO<T> success(T data) {
+        ResponseDTO<T> res = new ResponseDTO<T>();
         res.httpStatus = HttpStatus.OK;
         res.status = res.httpStatus.value();
         res.data = data;
@@ -70,7 +70,7 @@ public class ResponseDto<T> {
      * @param httpStatus http code
      * @return ResponseDto
      */
-    public ResponseDto<T> withHttpStatus(HttpStatus httpStatus) {
+    public ResponseDTO<T> withHttpStatus(HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
         this.status = httpStatus.value();
         return this;
@@ -82,7 +82,7 @@ public class ResponseDto<T> {
      * @param data response data
      * @return ResponseDto
      */
-    public ResponseDto<T> withData(T data) {
+    public ResponseDTO<T> withData(T data) {
         this.data = data;
         return this;
     }
@@ -93,7 +93,7 @@ public class ResponseDto<T> {
      * @param httpHeaders the headers
      * @return ResponseDto
      */
-    public ResponseDto<T> withHttpHeaders(HttpHeaders httpHeaders) {
+    public ResponseDTO<T> withHttpHeaders(HttpHeaders httpHeaders) {
         this.headers = httpHeaders;
         return this;
     }
@@ -104,7 +104,7 @@ public class ResponseDto<T> {
      * @param message the messages
      * @return ResponseDto
      */
-    public ResponseDto<T> withMessage(String message) {
+    public ResponseDTO<T> withMessage(String message) {
         this.message = message;
         return this;
     }
@@ -116,7 +116,7 @@ public class ResponseDto<T> {
      * @param message the message
      * @return ResponseDto
      */
-    public ResponseDto<T> withMessage(String code, String message) {
+    public ResponseDTO<T> withMessage(String code, String message) {
         this.code = code;
         this.message = message;
         return this;
@@ -127,7 +127,7 @@ public class ResponseDto<T> {
      *
      * @return ResponseEntity
      */
-    public ResponseEntity<ResponseDto<T>> toResponseEntity() {
-        return new ResponseEntity<ResponseDto<T>>(this, this.httpStatus);
+    public ResponseEntity<ResponseDTO<T>> toResponseEntity() {
+        return new ResponseEntity<ResponseDTO<T>>(this, this.httpStatus);
     }
 }

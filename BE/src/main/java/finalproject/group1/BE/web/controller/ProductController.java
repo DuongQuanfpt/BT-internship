@@ -2,11 +2,16 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.services.ProductService;
+import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
-import finalproject.group1.BE.web.dto.response.ResponseDto;
+import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductResponse;
+import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +28,24 @@ import java.util.stream.Collectors;
 public class ProductController {
     private ProductService productService;
 
+    @PostMapping("/search")
+    public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
+                                         BindingResult bindingResult, Pageable pageable) {
+        if(bindingResult.hasErrors()){
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
+        ProductListResponse productListResponse = productService.getProductList(productListRequest,pageable);
+        return ResponseEntity.ok().body(ResponseDTO.success(productListResponse));
+    }
 
+    @GetMapping("/{sku}")
+    public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku) {
+        ProductDetailResponse response = productService.getProductDetails(sku);
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/create",consumes = { MediaType.APPLICATION_JSON_VALUE,
@@ -35,7 +57,7 @@ public class ProductController {
         }
 
         productService.save(request,new Product());
-        return ResponseEntity.ok().body(ResponseDto.build()
+        return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
@@ -54,7 +76,7 @@ public class ProductController {
         }
 
         productService.update(id,updateRequest);
-        return ResponseEntity.ok().body(ResponseDto.build()
+        return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 }

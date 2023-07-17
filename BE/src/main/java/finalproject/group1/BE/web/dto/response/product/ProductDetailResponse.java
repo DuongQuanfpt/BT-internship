@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.response.Product;
+package finalproject.group1.BE.web.dto.response.product;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductListResponse {
+public class ProductDetailResponse {
     private int id;
     @NotEmpty
     private String sku;

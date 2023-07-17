@@ -1,6 +1,5 @@
 package finalproject.group1.BE.domain.services;
 
-import com.google.common.io.Files;
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.domain.entities.Category;
@@ -10,23 +9,25 @@ import finalproject.group1.BE.domain.entities.ProductImg;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
+import finalproject.group1.BE.domain.repository.ImageRepository;
 import finalproject.group1.BE.domain.repository.ProductRepository;
+import finalproject.group1.BE.web.dto.data.image.ImageData;
+import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
-import finalproject.group1.BE.web.dto.response.Product.ProductListResponse;
+import finalproject.group1.BE.web.dto.response.PageableDTO;
+import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,38 +39,66 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
 
     @Value("${file.upload.product-directory}")
     private String fileUploadDirectory;
-    public void getAllProducts() {
+
+    public ProductListResponse getProductList(ProductListRequest listRequest, Pageable pageable) {
+
+        Integer categoryId = null;
+        String searchKey = null;
+        ProductListResponse productListResponse = new ProductListResponse();
+        PageableDTO pageableDTO = new PageableDTO();
+
+        if (listRequest.getCategoryId() != null) {
+            categoryId = listRequest.getCategoryId();
+        }
+
+        if (listRequest.getSearchKey() != null && !listRequest.getSearchKey().isEmpty()) {
+            searchKey = listRequest.getSearchKey();
+        }
+
+        Page<Product> results = productRepository.searchProductByConditions(categoryId, searchKey, pageable);
+        pageableDTO.setTotalPages(results.getTotalPages());
+        pageableDTO.setPageSize(results.getSize());
+        pageableDTO.setPageNumber(results.getNumber());
+
+        List<ProductResponse> productResponse = results.stream()
+                .map(product -> {
+                    ProductResponse response = modelMapper.map(product, ProductResponse.class);
+
+                    ImageData imageData = imageRepository.findProductThumbnail(product.getId());
+                    response.setImageName(imageData.getName());
+                    response.setImagePath(imageData.getPath());
+                    return response;
+                }).collect(Collectors.toList());
+
+        productListResponse.setProductResponses(productResponse);
+        productListResponse.setPageableDTO(pageableDTO);
+        return productListResponse;
 
     }
 
-    public List<ProductListResponse> getProductDetails(String sku) {
+
+    public ProductDetailResponse getProductDetails(String sku) {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
             throw new NotFoundException("Product not found with SKU: " + sku);
         }));
-        List<ProductListResponse> listProductsDTO = productDetail.stream()
-                .map(product ->
-                {
-                    ProductListResponse response = modelMapper.map(product, ProductListResponse.class);
+        ProductDetailResponse productDetailsDTO = new ProductDetailResponse();
+        productDetailsDTO.setId(productDetail.get().getId());
+        productDetailsDTO.setSku(productDetail.get().getSku());
+        productDetailsDTO.setName(productDetail.get().getName());
+        productDetailsDTO.setDetailInfo(productDetail.get().getDetailInfo());
+        productDetailsDTO.setPrice(productDetail.get().getPrice());
 
-                    List<String> imagePaths = product.getProductImgs().stream()
-                            .map(productImg -> productImg.getImage().getPath())
-                            .collect(Collectors.toList());
-                    response.setImagePath(imagePaths);
+        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
 
-                    List<String> imageNames = product.getProductImgs().stream()
-                            .map(productImg -> productImg.getImage().getName())
-                            .collect(Collectors.toList());
-                    response.setImageName(imageNames);
+        productDetailsDTO.setImageName(imagesData.stream().map(imageData -> imageData.getName()).collect(Collectors.toList()));
+        productDetailsDTO.setImagePath(imagesData.stream().map(imageData -> imageData.getPath()).collect(Collectors.toList()));
 
-                    return response;
-                })
-                .collect(Collectors.toList());
-
-        return listProductsDTO;
+        return productDetailsDTO;
     }
 
 
@@ -88,7 +117,7 @@ public class ProductService {
             throw new ExistException("Product with that sku already exist");
         }
         Category category = categoryRepository.findById(request.getCategory_id())
-                .orElseThrow(() -> new NotFoundException("Product Not Found"));
+                .orElseThrow(() -> new NotFoundException("Category Not Found"));
 
         product.setSku(request.getSku());
         product.setName(request.getName());
