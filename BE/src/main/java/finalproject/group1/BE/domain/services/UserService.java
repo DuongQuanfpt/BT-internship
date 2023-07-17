@@ -17,7 +17,6 @@ import finalproject.group1.BE.web.exception.NotFoundException;
 import finalproject.group1.BE.web.security.JwtHelper;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,12 +51,10 @@ public class UserService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
 
-        TypeMap<UserRegisterRequest, User> propertyMapper = modelMapper.createTypeMap(UserRegisterRequest.class, User.class);
-        propertyMapper.addMappings(mapper -> mapper.skip(User::setId)); //skip map for id
-        propertyMapper.addMapping(UserRegisterRequest::getLoginId, User::setEmail);//map loginId to email
+        User newUser = new User();
 
-        User newUser = modelMapper.map(registerRequest, User.class);
-
+        newUser.setUserName(registerRequest.getUserName());
+        newUser.setEmail(registerRequest.getLoginId());
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         newUser.setBirthDay(LocalDate.parse(registerRequest.getBirthDay(), formatter));
         newUser.setDeleteFlag(DeleteFlag.NORMAL);
@@ -95,12 +93,20 @@ public class UserService {
             email = listRequest.getLoginId();
         }
 
-        if (listRequest.getStartBirthDay() != null && !listRequest.getStartBirthDay().isEmpty()) {
-            startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
+        if (listRequest.getStartBirthDay() != null) {
+            try {
+                startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
+            } catch (DateTimeParseException e) {
+                //do nothing
+            }
         }
 
-        if (listRequest.getEndBirthDay() != null && !listRequest.getEndBirthDay().isEmpty()) {
-            endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
+        if(listRequest.getEndBirthDay() != null) {
+            try {
+                endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
+            } catch (DateTimeParseException e) {
+                //do nothing
+            }
         }
 
         if (listRequest.getTotalPrice() != null) {
@@ -112,11 +118,11 @@ public class UserService {
     }
 
     public UserDetailResponse getUserDetails(int id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User Not Found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user not found"));
+        UserDetailResponse detailResponse = modelMapper.map(user, UserDetailResponse.class);
+        detailResponse.setLoginId(user.getEmail());
 
-        TypeMap<User, UserDetailResponse> propertyMapper = modelMapper.createTypeMap(User.class, UserDetailResponse.class);
-        propertyMapper.addMapping(User::getEmail, UserDetailResponse::setLoginId);//map loginId to email
-
-        return modelMapper.map(user, UserDetailResponse.class);
+        return detailResponse;
     }
 }

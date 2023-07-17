@@ -83,8 +83,8 @@ public class CartService {
             newCartDetail = new CartDetail();
             newCartDetail.setCart(cart);
             newCartDetail.setProduct(product);
-            newCartDetail.setPrice(product.getPrice());
         }
+        newCartDetail.setPrice(product.getPrice());
         newCartDetail.setQuantity((newCartDetail.getQuantity()) + request.getQuantity());
         newCartDetail.setTotalPrice((newCartDetail.getPrice()* newCartDetail.getQuantity()));
 
@@ -157,6 +157,7 @@ public class CartService {
                         //update quantity and total price
                         CartDetail detail =  userCartDetails.get(index);
 
+                        detail.setPrice(detail.getProduct().getPrice());
                         detail.setQuantity(detail.getQuantity() +tokenCartDetail.getQuantity());
                         detail.setTotalPrice(detail.getPrice()*detail.getQuantity());
                     } else {//if not exist
