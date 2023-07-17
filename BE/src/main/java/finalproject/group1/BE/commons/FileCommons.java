@@ -33,22 +33,32 @@ public class FileCommons {
         }
     }
 
-    public static void delete(String filePath, String uploadDirectory) {
+    /**
+     * delete file
+     * @param filePath - path of file to delele
+     */
+    public static void delete(String filePath) {
         try {
-            Path uploadDirectoryPath = Paths.get(uploadDirectory);
-            Files.delete(uploadDirectoryPath.resolve(filePath));
-        }catch (NoSuchFileException e){
-            //do nothing
+            Path path = Paths.get(filePath);
+            // if file exist , delete the file
+            if(Files.exists(path)){
+                Files.delete(path);
+            }
         }catch (IOException e) {
            throw new RuntimeException(e);
         }
     }
 
+    /**
+     * get file extension
+     * @param file
+     * @return
+     */
     public static String getExtension(MultipartFile file) {
         try{
             String fileName = file.getOriginalFilename();
             return fileName.substring(fileName.lastIndexOf("."));
-        } catch (IndexOutOfBoundsException e){
+        } catch (IndexOutOfBoundsException e){ // if file name contain no extension
             e.printStackTrace();
             return "";
         }

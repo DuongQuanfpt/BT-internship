@@ -32,10 +32,7 @@ public class ProductController {
     public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
                                          BindingResult bindingResult, Pageable pageable) {
         if(bindingResult.hasErrors()){
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+            throw new ValidationException(bindingResult);
         }
         ProductListResponse productListResponse = productService.getProductList(productListRequest,pageable);
         return ResponseEntity.ok().body(ResponseDTO.success(productListResponse));
@@ -69,13 +66,19 @@ public class ProductController {
             ,BindingResult bindingResult){
 
         if(bindingResult.hasErrors()){
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+            throw new ValidationException(bindingResult);
         }
 
         productService.update(id,updateRequest);
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity deleteProduct(@PathVariable(name = "id") int id){
+
+        productService.delete(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }

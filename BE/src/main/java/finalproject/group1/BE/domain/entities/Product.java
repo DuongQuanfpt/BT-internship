@@ -20,7 +20,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "sku", nullable = false, unique = true,length = 50)
+    @Column(name = "sku", nullable = true, unique = true,length = 50)
     private String sku;
 
     @Column(name = "name", nullable = false)
@@ -34,6 +34,9 @@ public class Product {
 
     @Column(name = "price", nullable = false)
     private Float price;
+
+    @Column(name = "old_sku", nullable = true, length = 50)
+    private String oldSku;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

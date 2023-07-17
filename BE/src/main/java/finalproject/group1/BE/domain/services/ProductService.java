@@ -141,7 +141,7 @@ public class ProductService {
             Image image = new Image();
             image.setName(multipartFile.getOriginalFilename());
             image.setPath(FileCommons.uploadFile(multipartFile, product.getSku() +
-                    Constants.DETAIL_IMAGE_PREFIX + count,fileUploadDirectory));
+                    Constants.DETAIL_IMAGE_PREFIX + count, fileUploadDirectory));
             image.setThumbnailFlag(ThumbnailFlag.NO);
 
             productImg.setProduct(finalProduct);
@@ -157,7 +157,7 @@ public class ProductService {
         Image image = new Image();
         image.setName(request.getThumbnailImage().getOriginalFilename());
         image.setPath(FileCommons.uploadFile(request.getThumbnailImage(), product.getSku()
-                + Constants.THUMBNAIL_IMAGE_PREFIX,fileUploadDirectory));
+                + Constants.THUMBNAIL_IMAGE_PREFIX, fileUploadDirectory));
         image.setThumbnailFlag(ThumbnailFlag.YES);
 
         thumbnailImg.setProduct(product);
@@ -167,5 +167,32 @@ public class ProductService {
         product.setProductImgs(productImgs);
         // save changes to db
         productRepository.save(product);
+    }
+
+    /**
+     * set product delete flag to 1 (DeleteFlag.DELETED)
+     * @param id - product id
+     */
+    @Transactional
+    public void delete(int id) {
+        Product product = productRepository.findById(id).orElse(null);
+        // if product exist and not deleted(== DeleteFlag.NORMAL)
+        if (product != null && product.getDeleteFlag() != DeleteFlag.DELETED) {
+            //update product data
+            product.setOldSku(product.getSku());
+            product.setSku(null);
+            product.setDeleteFlag(DeleteFlag.DELETED);
+
+            //delete product images
+            List<ProductImg> productImgs = product.getProductImgs();
+            productImgs.stream().forEach(productImg -> {
+                //delete images in server
+                FileCommons.delete(productImg.getImage().getPath());
+            });
+            product.getProductImgs().clear();
+
+            //save changes to db
+            productRepository.save(product);
+        }
     }
 }
