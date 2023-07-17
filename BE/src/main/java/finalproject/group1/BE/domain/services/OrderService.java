@@ -134,14 +134,17 @@ public class OrderService {
             loginUserId = loginUser.getId();
         }
 
-        OrderStatus status = OrderStatus.getOrderStatus(Integer.valueOf(request.getStatus()));
+        OrderStatus status = null;
+        if(request.getStatus() != null){
+            status = OrderStatus.getOrderStatus(Integer.valueOf(request.getStatus()));
+        }
 
         List<Order> result = orderRepository.findOrderBySearchConditions(
                 request.getProductName(), request.getSku(), request.getOrderId(),
                 orderDate, status, request.getUserName(), loginUserId,pageable);
         List<OrderResponse> orderResponses = result.stream().map(order -> {
             OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
-            orderResponse.setUsername(order.getOwner().getUsername());
+            orderResponse.setUsername(order.getOwner().getUserName());
             orderResponse.setShippingDistrict(order.getShippingDetail().getDistrict().getName());
             orderResponse.setShippingCity(order.getShippingDetail().getCity().getName());
 
