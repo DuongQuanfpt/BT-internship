@@ -35,7 +35,7 @@ public class OrderController {
         return ResponseEntity.ok().body(ResponseDto.success(orderService.createOrder(request,loginUser)));
     }
 
-    @PostMapping("/search")
+    @GetMapping("/search")
     public ResponseEntity searchOrder(@RequestBody @Valid SearchOrderRequest request,
                                       BindingResult bindingResult,
                                       Pageable pageable,

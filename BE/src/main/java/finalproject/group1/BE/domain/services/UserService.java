@@ -94,18 +94,21 @@ public class UserService {
             email = listRequest.getLoginId();
         }
 
-        try {
-            startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
-        } catch (DateTimeParseException e) {
-            //do nothing
+        if (listRequest.getStartBirthDay() != null) {
+            try {
+                startDate = LocalDate.parse(listRequest.getStartBirthDay(), formatter);
+            } catch (DateTimeParseException e) {
+                //do nothing
+            }
         }
 
-        try {
-            endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
-        } catch (DateTimeParseException e) {
-            //do nothing
+        if(listRequest.getEndBirthDay() != null) {
+            try {
+                endDate = LocalDate.parse(listRequest.getEndBirthDay(), formatter);
+            } catch (DateTimeParseException e) {
+                //do nothing
+            }
         }
-
 
         if (listRequest.getTotalPrice() != null) {
             totalPrice = listRequest.getTotalPrice();
