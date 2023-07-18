@@ -31,13 +31,19 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity BadCredentialHandler(BadCredentialsException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("401","","Incorrect email or password");
+        ErrorResponse response = new ErrorResponse("401","Bad credential","Incorrect email or password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity NotFoundHandler(NotFoundException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","Not Found",exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(UserLockException.class)
+    public ResponseEntity UserLockHandler(UserLockException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","locked","user locked");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

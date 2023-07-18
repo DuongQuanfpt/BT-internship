@@ -30,7 +30,6 @@ public class DateFormatValidator implements ConstraintValidator<ValidDateFormat,
             LocalDate startDate = LocalDate.parse(date, formatter);
 
         } catch (DateTimeParseException e) {
-            e.printStackTrace();
             return false;
         }
         return true;
