@@ -1,18 +1,24 @@
 package finalproject.group1.BE.web.security;
 
-import io.jsonwebtoken.*;
+import finalproject.group1.BE.domain.entities.User;
+import finalproject.group1.BE.domain.enums.DeleteFlag;
+import finalproject.group1.BE.domain.enums.UserStatus;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtHelper {
-    private final String SECRET_KEY = "===========secret key===========";
+    @Value("${jwt.secret-key}")
+    private String secretKey;
 
     private final int DURATION = 1000 * 60 * 60 * 10; //10h
 
@@ -27,11 +33,11 @@ public class JwtHelper {
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + DURATION))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+                .signWith(SignatureAlgorithm.HS256, secretKey).compact();
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
     public String extractEmail(String token) {
@@ -50,9 +56,14 @@ public class JwtHelper {
         return extractExpiration(token).before(new Date());
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, User userDetails) {
         final String username = extractEmail(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if((username.equals(userDetails.getUsername()) && !isTokenExpired(token)
+                && userDetails.getStatus() != UserStatus.LOCKED)
+                && userDetails.getDeleteFlag() != DeleteFlag.DELETED){
+            return true;
+        }
+        return false;
     }
 
 }
