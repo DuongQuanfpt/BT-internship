@@ -8,10 +8,7 @@ import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
-import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartInfoDetailResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartSyncResponse;
+import finalproject.group1.BE.web.dto.response.cart.*;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -134,7 +131,6 @@ public class CartService {
 
         return response;
     }
-
     @Transactional
     public CartSyncResponse synccart(CartRequest request, User user) {
         int totalQuantity = 0;
@@ -200,4 +196,30 @@ public class CartService {
         response.setTotalQuantity(totalQuantity);
         return response;
     }
+
+    public CartQuantityResponse cartQuantity(CartRequest request, Authentication authentication) {
+        User loginUser;
+        Cart cart = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+            cart = cartRepository.findByOwnerId(loginUser.getId()).orElse(null);
+        } else if (request.getToken() != null) { //check if there are token
+            cart = cartRepository.findByToken(request.getToken()).orElse(null);
+        }
+
+        int totalQuantity = 0;
+        CartQuantityResponse cartQuantityDTO = new CartQuantityResponse();
+        if (cart != null) {
+
+            List<CartDetail> cartDetails = cartDetailsRepository.findByCartId(cart.getId());
+            for(CartDetail cartDetail : cartDetails) {
+                totalQuantity += cartDetail.getQuantity();
+            }
+            cartQuantityDTO.setTotalQuantity(totalQuantity);
+            cartQuantityDTO.setVersionNo(cart.getVersionNo());
+        }
+
+        return cartQuantityDTO;
+    }
+
 }
