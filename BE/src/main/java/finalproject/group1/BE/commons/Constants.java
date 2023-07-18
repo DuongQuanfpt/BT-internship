@@ -17,4 +17,6 @@ public final class Constants {
     public static final String USER_LOCK_EMAIL_SUBJECT = "Account lock";
     public static final String USER_LOCK_EMAIL_CONTENT = "Account %s have been locked";
 
+    public static final String COMMON_TOKEN_EXCEPTION_RESPONSE = "invalid token";
+
 }
