@@ -1,6 +1,7 @@
 package finalproject.group1.BE.domain.services;
 
 import finalproject.group1.BE.commons.Constants;
+import finalproject.group1.BE.commons.EmailCommons;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.Role;
@@ -15,6 +16,7 @@ import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import finalproject.group1.BE.web.security.JwtHelper;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,11 +38,13 @@ import java.util.Optional;
 public class UserService {
 
     private UserRepository userRepository;
+    private EmailCommons emailCommons;
     private ModelMapper modelMapper;
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtHelper jwtHelper;
 
+    @Transactional
     public void saveUser(UserRegisterRequest registerRequest) {
         Optional<User> existUser = userRepository.findByEmail(registerRequest.getLoginId());
         if (existUser.isPresent()) {
@@ -124,5 +129,21 @@ public class UserService {
         detailResponse.setLoginId(user.getEmail());
 
         return detailResponse;
+    }
+
+    /**
+     * set user status to locked
+     * @param id - id of the user
+     */
+    @Transactional
+    public void lockUser(int id) {
+        User user = userRepository.findById(id).orElse(null);
+        if(user != null && user.getStatus() != UserStatus.LOCKED){// if user exist
+            user.setStatus(UserStatus.LOCKED);
+            userRepository.save(user);
+
+            String emailContent = String.format(Constants.USER_LOCK_EMAIL_CONTENT,user.getEmail());
+            emailCommons.sendSimpleMessage(user.getEmail(),Constants.USER_LOCK_EMAIL_SUBJECT, emailContent);
+        }
     }
 }

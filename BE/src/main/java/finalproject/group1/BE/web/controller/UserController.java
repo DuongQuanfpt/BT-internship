@@ -9,6 +9,7 @@ import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -39,6 +40,15 @@ public class UserController {
 
         UserDetailResponse response = userService.getUserDetails(id);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/lock/{id}")
+    public ResponseEntity lockUser(@PathVariable(value = "id") int id){
+
+        userService.lockUser(id);
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
 }
