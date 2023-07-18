@@ -2,6 +2,7 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
+import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
@@ -47,6 +48,19 @@ public class UserController {
     public ResponseEntity lockUser(@PathVariable(value = "id") int id){
 
         userService.lockUser(id);
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("")
+    public ResponseEntity updateUser(@RequestBody @Valid UserUpdateRequest updateRequest,
+                                     BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+
+        userService.update(updateRequest);
         return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }

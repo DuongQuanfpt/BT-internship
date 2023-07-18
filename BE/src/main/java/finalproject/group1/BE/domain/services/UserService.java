@@ -10,17 +10,19 @@ import finalproject.group1.BE.domain.repository.UserRepository;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
+import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.NotFoundException;
+import finalproject.group1.BE.web.exception.UserLockException;
 import finalproject.group1.BE.web.security.JwtHelper;
-import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -144,6 +146,34 @@ public class UserService {
 
             String emailContent = String.format(Constants.USER_LOCK_EMAIL_CONTENT,user.getEmail());
             emailCommons.sendSimpleMessage(user.getEmail(),Constants.USER_LOCK_EMAIL_SUBJECT, emailContent);
+        }
+    }
+
+    /**
+     * update user information
+     * @param updateRequest
+     * @throws LockedException if user is locked
+     */
+    public void update(UserUpdateRequest updateRequest) {
+        User user = userRepository.findByEmail(updateRequest.getLoginId()).orElse(null);
+
+        if(user != null) {//if user exist
+            //if user is locked, throw exception
+            if(user.getStatus() == UserStatus.LOCKED){
+                throw new UserLockException();
+            }
+
+            //update user information
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
+            LocalDate newBirthDay = LocalDate.parse(updateRequest.getBirthDay(),formatter);
+            String encodedNewPassword = passwordEncoder.encode(updateRequest.getPassword());
+
+            user.setUserName(updateRequest.getUser_name());
+            user.setPassword(encodedNewPassword);
+            user.setBirthDay(newBirthDay);
+
+            //save changes to db
+            userRepository.save(user);
         }
     }
 }
