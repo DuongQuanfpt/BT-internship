@@ -7,6 +7,7 @@ import finalproject.group1.BE.web.dto.request.cart.CartRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
 import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
+import finalproject.group1.BE.web.dto.response.cart.CartQuantityResponse;
 import finalproject.group1.BE.web.dto.response.cart.CartSyncResponse;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
@@ -47,7 +48,7 @@ public class CartController {
     }
 
     @PostMapping("/sync-cart")
-    public  ResponseEntity syncCart(@Valid @RequestBody CartRequest request,
+    public ResponseEntity syncCart(@Valid @RequestBody CartRequest request,
                                     BindingResult bindingResult,
                                     Authentication authentication){
         if (bindingResult.hasErrors()) {
@@ -56,6 +57,18 @@ public class CartController {
 
         User loginUser = (User) authentication.getPrincipal();
         CartSyncResponse response = cartService.synccart(request,loginUser);
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @GetMapping("/cart-quantity")
+    public ResponseEntity cartQuantity(@Valid @RequestBody CartRequest request,
+                                   BindingResult bindingResult,
+                                   Authentication authentication){
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+
+        CartQuantityResponse response = cartService.cartQuantity(request,authentication);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 }
