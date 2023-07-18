@@ -12,6 +12,9 @@ public final class Constants {
     public static final String VALID_IMAGE_FILE_EXTENSION = ".jpg";
     public static final String THUMBNAIL_IMAGE_PREFIX = "_thumbnail";
     public static final String DETAIL_IMAGE_PREFIX = "_detail_";
+    public static final String ORDER_EMAIL_SUBJECT = "Order placed";
     public static final String ORDER_EMAIL_CONTENT = "Order %s has been placed";
+    public static final String USER_LOCK_EMAIL_SUBJECT = "Account lock";
+    public static final String USER_LOCK_EMAIL_CONTENT = "Account %s have been locked";
 
 }
