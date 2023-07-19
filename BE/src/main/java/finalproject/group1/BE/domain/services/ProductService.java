@@ -187,7 +187,8 @@ public class ProductService {
             List<ProductImg> productImgs = product.getProductImgs();
             productImgs.stream().forEach(productImg -> {
                 //delete images in server
-                FileCommons.delete(productImg.getImage().getPath());
+                FileCommons.delete(productImg.getImage().getPath()
+                        ,fileUploadDirectory);
             });
             product.getProductImgs().clear();
 

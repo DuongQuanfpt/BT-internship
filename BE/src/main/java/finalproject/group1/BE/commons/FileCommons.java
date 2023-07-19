@@ -27,7 +27,8 @@ public class FileCommons {
                     , StandardCopyOption.REPLACE_EXISTING);
 
             String destinationPath = uploadDirectory + File.separator + fileName;
-            return destinationPath;
+            String fileUrl = destinationPath.substring(destinationPath.lastIndexOf(File.separator) + 1);
+            return fileUrl;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -37,12 +38,13 @@ public class FileCommons {
      * delete file
      * @param filePath - path of file to delele
      */
-    public static void delete(String filePath) {
+    public static void delete(String filePath,String uploadDirectory) {
         try {
-            Path path = Paths.get(filePath);
+            Path uploadDirectoryPath = Paths.get(uploadDirectory);
+            Path resolvedFilePath = uploadDirectoryPath.resolve(filePath);
             // if file exist , delete the file
-            if(Files.exists(path)){
-                Files.delete(path);
+            if(Files.exists(resolvedFilePath)){
+                Files.delete(resolvedFilePath);
             }
         }catch (IOException e) {
            throw new RuntimeException(e);
