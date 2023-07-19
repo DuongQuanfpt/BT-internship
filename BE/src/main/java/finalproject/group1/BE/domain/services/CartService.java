@@ -4,6 +4,7 @@ import finalproject.group1.BE.domain.entities.Cart;
 import finalproject.group1.BE.domain.entities.CartDetail;
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.entities.User;
+import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
@@ -43,7 +44,7 @@ public class CartService {
      */
     @Transactional
     public CartAddResponse addToCart(CartAddRequest request, Authentication authentication) {
-        Product product = productRepository.findById(request.getProductId())
+        Product product = productRepository.findByIdNotDeleted(request.getProductId())
                 .orElseThrow(() -> new NotFoundException("Product Not Found"));
         Cart cart = null;
         User loginUser = null;
@@ -121,10 +122,13 @@ public class CartService {
             response.setDetails(cartDetails.stream().map(cartDetail -> {
                 CartInfoDetailResponse detailResponse = new CartInfoDetailResponse();
                 detailResponse = modelMapper.map(cartDetail, CartInfoDetailResponse.class);
-
-                ImageData imageData = imageRepository.findProductThumbnail(cartDetail.getProduct().getId());
-                detailResponse.setImageName(imageData.getName());
-                detailResponse.setImagePath(imageData.getPath());
+                //if product exist
+                if(cartDetail.getProduct().getDeleteFlag() == DeleteFlag.NORMAL){
+                    ImageData imageData = imageRepository.findProductThumbnail(cartDetail.getProduct().getId());
+                    detailResponse.setImageName(imageData.getName());
+                    detailResponse.setImagePath(imageData.getPath());
+                }
+                detailResponse.setStatus(DeleteFlag.DELETED.name());
                 return detailResponse;
             }).collect(Collectors.toList()));
         }
@@ -146,6 +150,10 @@ public class CartService {
                 List<CartDetail> userCartDetails = cartDetailsRepository.findByCartId(userCart.getId());
 
                 tokenCartDetails.stream().forEach(tokenCartDetail -> {
+                    //if product is deleted
+                    if (tokenCartDetail.getProduct().getDeleteFlag() == DeleteFlag.DELETED){
+                        return; //skip to next detail
+                    }
                     //get index of detail with matching product id (override equal)
                     int index = userCartDetails.indexOf(tokenCartDetail);
                     //if matching detail exist

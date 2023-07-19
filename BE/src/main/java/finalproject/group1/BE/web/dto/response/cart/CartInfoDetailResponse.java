@@ -52,4 +52,9 @@ public class CartInfoDetailResponse {
      * total prices of product in cart
      */
     Float totalPrice;
+
+    /**
+     * product status
+     */
+    String status;
 }
