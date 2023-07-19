@@ -15,13 +15,13 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order,Integer> {
     @Query("  select o " +
             " from Order o join OrderDetail od on o.id = od.order.id" +
-            " where (od.product.name like %:productName% or :productName is null) " +
-            "       and (od.product.sku like %:sku% or :sku is null) " +
-            "       and (o.displayId = :orderId or :orderId is null) " +
-            "       and (o.orderDate = :orderDate or :orderDate is null) " +
-            "       and (o.status = :status or :status is null) " +
-            "       and (o.owner.userName = :userName or :userName is null) " +
-            "       and (o.owner.id = :userId or :userId is null )" +
+            " where (:productName is null or od.product.name like %:productName% ) " +
+            "       and (:sku is null or od.product.sku like %:sku% ) " +
+            "       and (:orderId is null or o.displayId = :orderId ) " +
+            "       and (:orderDate is null or o.orderDate = :orderDate ) " +
+            "       and (:status is null or o.status = :status ) " +
+            "       and (:userName is null or o.owner.userName = :userName ) " +
+            "       and (:userId is null or o.owner.id = :userId  )" +
             " group by o.id ")
     List<Order> findOrderBySearchConditions(@Param("productName") String productName
             , @Param("sku") String sku , @Param("orderId") String orderId
