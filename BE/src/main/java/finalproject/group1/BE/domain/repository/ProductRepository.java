@@ -14,6 +14,10 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product,Integer> {
     Optional<Product> findBySku(String sku);
 
+    @Query("Select p from Product p where p.id = :id and " +
+            "      p.deleteFlag = finalproject.group1.BE.domain.enums.DeleteFlag.NORMAL")
+    Optional<Product> findByIdNotDeleted(@Param("id") int id);
+
     @Query("SELECT p FROM Product p " +
             "WHERE (:categoryId IS NULL OR p.category.id = :categoryId) " +
             "AND (:searchKey IS NULL OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :searchKey, '%')) OR " +
