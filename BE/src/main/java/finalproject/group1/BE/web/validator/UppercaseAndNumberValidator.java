@@ -19,6 +19,10 @@ public class UppercaseAndNumberValidator implements ConstraintValidator<Uppercas
         boolean uppercaseFlag = false;
         boolean numberFlag = false;
 
+        if(password == null){
+            return false;
+        }
+
         for (int i = 0; i < password.length(); i++) {
             currentChar = password.charAt(i);
             //check if current character is a number
