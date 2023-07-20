@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -18,9 +19,9 @@ public class ChangedPasswordToken {
     private String token;
 
     @Column(name = "expire_date", nullable = false)
-    private LocalDate expireDate;
+    private LocalDateTime expireDate;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name="user_id", nullable=false)
     private User owner;
 }
