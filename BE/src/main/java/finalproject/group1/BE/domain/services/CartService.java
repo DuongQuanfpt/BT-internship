@@ -128,7 +128,7 @@ public class CartService {
                     detailResponse.setImageName(imageData.getName());
                     detailResponse.setImagePath(imageData.getPath());
                 }
-                detailResponse.setStatus(DeleteFlag.DELETED.name());
+                detailResponse.setStatus(cartDetail.getProduct().getDeleteFlag().name());
                 return detailResponse;
             }).collect(Collectors.toList()));
         }

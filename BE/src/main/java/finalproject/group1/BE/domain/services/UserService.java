@@ -79,8 +79,9 @@ public class UserService {
     }
 
     public UserLoginResponse authenticate(UserLoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.getLoginId(), loginRequest.getPassword()));
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getLoginId(), loginRequest.getPassword()));
 
         User user = (User) authentication.getPrincipal();
         user = userRepository.findByEmail(user.getEmail()).get();
@@ -218,17 +219,18 @@ public class UserService {
     /**
      * generate a random password for
      * user with change password token
+     *
      * @param token - change password token
      */
     @Transactional
     public void resetPassword(String token) {
         ChangedPasswordToken passwordToken = tokenRepository.findByTokenAndNotExpired(
-                token,LocalDateTime.now()).orElseThrow(() -> new NotFoundException("Token ko hop le"));
+                token, LocalDateTime.now()).orElseThrow(() -> new NotFoundException("Token ko hop le"));
 
         User user = passwordToken.getOwner();
         //generate a random password for user
         Random rnd = new Random();
-        StringBuilder newPassword =new StringBuilder( RandomString.make(10));
+        StringBuilder newPassword = new StringBuilder(RandomString.make(10));
         newPassword.append((char) ('A' + rnd.nextInt(26)));//password must contain a uppercase char
         newPassword.append(rnd.nextInt(10));//password must contain a number
 
@@ -240,8 +242,26 @@ public class UserService {
         ///save changes to DB
         User savedUser = userRepository.save(user);
         //sent new password to user email
-        String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT,newPassword);
-        emailCommons.sendSimpleMessage(user.getEmail(),Constants.RESET_PASSWORD_EMAIL_SUBJECT ,emailContent);
+        String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT, newPassword);
+        emailCommons.sendSimpleMessage(user.getEmail(), Constants.RESET_PASSWORD_EMAIL_SUBJECT, emailContent);
 
+    }
+
+    /**
+     * set user delete flag to true
+     *
+     * @param id - user id
+     */
+    @Transactional
+    public void delete(int id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("User not found"));
+        //update user information
+        user.setOldLoginId(user.getEmail());
+        user.setEmail(null);
+        user.setDeleteFlag(DeleteFlag.DELETED);
+
+        //save to Db
+        userRepository.save(user);
     }
 }
