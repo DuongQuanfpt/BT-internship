@@ -65,4 +65,13 @@ public class UserController {
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteUser(@PathVariable(value = "id") int id){
+
+        userService.delete(id);
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
+
 }
