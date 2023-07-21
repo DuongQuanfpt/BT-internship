@@ -39,13 +39,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @AllArgsConstructor
 public class UserService {
 
     private UserRepository userRepository;
-    private ChangedPasswordTokenRepository changedPasswordTokenRepository;
+    private ChangedPasswordTokenRepository tokenRepository;
     private EmailCommons emailCommons;
     private ModelMapper modelMapper;
     private PasswordEncoder passwordEncoder;
@@ -210,7 +211,37 @@ public class UserService {
         ChangedPasswordToken savedToken = userRepository.save(user).getChangedPasswordTokens();
 
         //sent reset password email to user
-        String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT, savedToken.getToken());
-        emailCommons.sendMimeMessage(user.getEmail(), Constants.RESET_PASSWORD_EMAIL_SUBJECT, emailContent);
+        String emailContent = String.format(Constants.REQUEST_PASSWORD_EMAIL_CONTENT, savedToken.getToken());
+        emailCommons.sendMimeMessage(user.getEmail(), Constants.REQUEST_PASSWORD_EMAIL_SUBJECT, emailContent);
+    }
+
+    /**
+     * generate a random password for
+     * user with change password token
+     * @param token - change password token
+     */
+    @Transactional
+    public void resetPassword(String token) {
+        ChangedPasswordToken passwordToken = tokenRepository.findByTokenAndNotExpired(
+                token,LocalDateTime.now()).orElseThrow(() -> new NotFoundException("Token ko hop le"));
+
+        User user = passwordToken.getOwner();
+        //generate a random password for user
+        Random rnd = new Random();
+        StringBuilder newPassword =new StringBuilder( RandomString.make(10));
+        newPassword.append((char) ('A' + rnd.nextInt(26)));//password must contain a uppercase char
+        newPassword.append(rnd.nextInt(10));//password must contain a number
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        //delete change password token
+        user.setChangedPasswordTokens(null);
+
+        ///save changes to DB
+        User savedUser = userRepository.save(user);
+        //sent new password to user email
+        String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT,newPassword);
+        emailCommons.sendSimpleMessage(user.getEmail(),Constants.RESET_PASSWORD_EMAIL_SUBJECT ,emailContent);
+
     }
 }
