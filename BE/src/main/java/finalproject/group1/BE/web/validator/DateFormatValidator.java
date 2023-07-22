@@ -4,10 +4,14 @@ import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.web.annotation.ValidDateFormat;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.springframework.cglib.core.Local;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class DateFormatValidator implements ConstraintValidator<ValidDateFormat, String> {
 //    @Value("${validDateFormat}")
@@ -22,12 +26,10 @@ public class DateFormatValidator implements ConstraintValidator<ValidDateFormat,
     public boolean isValid(String date, ConstraintValidatorContext constraintValidatorContext) {
 
         try {
-            DateFormat format = new SimpleDateFormat(dateFormat);
-            format.setLenient(false);
-            format.parse(date);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
+            LocalDate startDate = LocalDate.parse(date, formatter);
 
-        } catch (ParseException | IllegalArgumentException| NullPointerException e) {
-            e.printStackTrace();
+        } catch (DateTimeParseException e) {
             return false;
         }
         return true;

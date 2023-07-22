@@ -34,4 +34,6 @@ public class CartInfoResponse {
      * list of cart detail
      */
     List<CartInfoDetailResponse> details;
+
+
 }

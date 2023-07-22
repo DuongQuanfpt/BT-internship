@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.response.cart;
+package finalproject.group1.BE.web.dto.response.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,22 +6,22 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * dto response of cart detail in cart-info
+ * dto response order detail
  */
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class CartInfoDetailResponse {
+@AllArgsConstructor
+public class OrderDetailResponse {
     /**
-     * cart detail id
+     * order detail id
      */
-    Integer id;
+    int id;
 
     /**
      * product id
      */
-    Integer productId;
+    int productId;
 
     /**
      * product name
@@ -29,29 +29,29 @@ public class CartInfoDetailResponse {
     String productName;
 
     /**
-     * product thumbnail image path
+     * thumbnail image path
      */
     String imagePath;
 
     /**
-     * product thumbnail image name
+     * thumbnail image name
      */
     String imageName;
 
     /**
-     * amount of product in cart
+     * product quantity
      */
-    Integer quantity;
+    int quantity;
 
     /**
-     * price of each product
+     * product price
      */
-    Float price;
+    float price;
 
     /**
-     * total prices of product in cart
+     * detail total price
      */
-    Float totalPrice;
+    float totalPrice;
 
     /**
      * product status

@@ -10,11 +10,11 @@ import java.util.Optional;
 
 @Repository
 public interface CartDetailsRepository extends JpaRepository<CartDetail,Integer> {
-    @Query("Select case when (SUM(cd.totalPrice) is null) then 0 else SUM(cd.totalPrice) end " +
+    @Query("Select COALESCE(SUM(cd.totalPrice),0) " +
             "from CartDetail cd where cd.cart.id = :cartId")
     float sumTotalPriceByCartId(int cartId);
 
-    @Query("Select case when (SUM(cd.quantity) is null) then 0 else SUM(cd.quantity) end " +
+    @Query("Select COALESCE(SUM(cd.quantity),0) " +
             "from CartDetail cd where cd.cart.id = :cartId")
     int sumQuantityByCardId(int cartId);
 

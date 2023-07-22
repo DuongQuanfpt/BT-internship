@@ -24,7 +24,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "login_id", nullable = false, unique = true)
+    @Column(name = "login_id", nullable = true, unique = true)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -48,8 +48,8 @@ public class User implements UserDetails {
     @Column(name = "old_login_id")
     private String oldLoginId;
 
-    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<ChangedPasswordToken> changedPasswordTokens = new ArrayList<>();
+    @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    private ChangedPasswordToken changedPasswordTokens;
 
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
