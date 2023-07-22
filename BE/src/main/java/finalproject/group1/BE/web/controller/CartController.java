@@ -4,11 +4,9 @@ import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
-import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartInfoResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartQuantityResponse;
-import finalproject.group1.BE.web.dto.response.cart.CartSyncResponse;
+import finalproject.group1.BE.web.dto.response.cart.*;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -69,6 +67,18 @@ public class CartController {
         }
 
         CartQuantityResponse response = cartService.cartQuantity(request,authentication);
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @PutMapping("/update-cart")
+    public ResponseEntity updateCart(@RequestBody @Valid CartUpdateRequest updateRequest,
+                                     BindingResult bindingResult,
+                                     Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+
+        CartUpdateAndDeleteResponse response = cartService.updateCart(updateRequest, authentication);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 }

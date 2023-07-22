@@ -9,6 +9,7 @@ import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartUpdateRequest;
 import finalproject.group1.BE.web.dto.response.cart.*;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.AllArgsConstructor;
@@ -190,6 +191,7 @@ public class CartService {
                 Cart savedCart = cartRepository.save(userCart);
                 totalQuantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
 
+
             } else { // if login user has no cart
                 //set cart when unauthenticated owner to user
                 tokenCart.setToken(null);
@@ -231,4 +233,57 @@ public class CartService {
         return cartQuantityDTO;
     }
 
+    @Transactional
+    public CartUpdateAndDeleteResponse updateCart(CartUpdateRequest updateRequest, Authentication authentication) {
+        User loginUser;
+        Cart cart = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+            cart = cartRepository.findByOwnerId(loginUser.getId()).orElse(null);
+        } else if (updateRequest.getToken() != null) { //check if there are token
+            cart = cartRepository.findByToken(updateRequest.getToken()).orElse(null);
+        }
+
+        CartUpdateAndDeleteResponse cartUpdatedDTO = new CartUpdateAndDeleteResponse();
+        if (cart == null) {
+            throw new NotFoundException("Cart does not exist !!!");
+        } else {
+            if (cart.getVersionNo() == updateRequest.getVersionNo()) {
+                List<CartDetail> cartDetails = cartDetailsRepository.findByCartId(cart.getId());
+                for (CartDetail cartDetail : cartDetails) {
+                    if (cartDetail.getId() == updateRequest.getId()) {
+                        // Update the quantity and calculate the new total price
+                        int newQuantity = updateRequest.getQuantity();
+                        float newTotalPrice = cartDetail.getPrice() * newQuantity;
+
+                        // Update the cart detail
+                        cartDetail.setQuantity(newQuantity);
+                        cartDetail.setTotalPrice(newTotalPrice);
+
+                        // Save the updated cart detail
+                        cartDetailsRepository.save(cartDetail);
+                    }
+                }
+
+                // Update the cart versionNo and cart totalPrice
+                int newVersionNo = cart.getVersionNo() + 1;
+                cart.setVersionNo(newVersionNo);
+                cart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
+                cartRepository.save(cart);
+
+                int totalQuantity = cartDetailsRepository.sumQuantityByCardId(cart.getId());
+                cartUpdatedDTO.setTotalQuantity(totalQuantity);
+            } else {
+                throw new NotFoundException("Not Found Cart Has This VersionNo");
+            }
+        }
+        return cartUpdatedDTO;
+    }
+
+
+
+//    @Transactional
+//    public CartUpdateAndDeleteResponse deleteCart(CartUpdateRequest updateRequest, Authentication authentication) {
+//
+//    }
 }
