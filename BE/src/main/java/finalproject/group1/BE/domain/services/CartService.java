@@ -7,6 +7,7 @@ import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartDeleteRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartUpdateRequest;
 import finalproject.group1.BE.web.dto.response.cart.*;
@@ -220,6 +221,9 @@ public class CartService {
             cartQuantityDTO.setTotalQuantity(totalQuantity);
             cartQuantityDTO.setVersionNo(cart.getVersionNo());
         }
+        else {
+            throw new NotFoundException("Cart does not exist !!!");
+        }
 
         return cartQuantityDTO;
     }
@@ -271,10 +275,46 @@ public class CartService {
         return cartUpdatedDTO;
     }
 
+    @Transactional
+    public CartUpdateAndDeleteResponse deleteCart(CartDeleteRequest deleteRequest, Authentication authentication) {
+        User loginUser;
+        Cart cart = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+            cart = cartRepository.findByOwnerId(loginUser.getId()).orElse(null);
+        } else if (deleteRequest.getToken() != null) { //check if there are token
+            cart = cartRepository.findByToken(deleteRequest.getToken()).orElse(null);
+        }
 
+        CartUpdateAndDeleteResponse cartUpdatedDTO = new CartUpdateAndDeleteResponse();
+        if (cart == null) {
+            throw new NotFoundException("Cart does not exist !!!");
+        } else {
+            if (cart.getVersionNo() == deleteRequest.getVersionNo()) {
+                if (deleteRequest.getClearCart() == 1) {
+                    // Delete all cart details
+                    cartDetailsRepository.deleteByCartId(cart.getId());
+                    // Delete the cart itself
+                    cartRepository.deleteById(cart.getId());
+                    cartUpdatedDTO.setTotalQuantity(0);
+                }
+                else if (deleteRequest.getClearCart() == 0) {
+                    cartDetailsRepository.deleteById(deleteRequest.getDetailId());
 
-//    @Transactional
-//    public CartUpdateAndDeleteResponse deleteCart(CartUpdateRequest updateRequest, Authentication authentication) {
-//
-//    }
+                    // Update the cart versionNo and cart totalPrice
+                    int newVersionNo = cart.getVersionNo() + 1;
+                    cart.setVersionNo(newVersionNo);
+                    cart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
+                    cartRepository.save(cart);
+
+                    int totalQuantity = cartDetailsRepository.sumQuantityByCardId(cart.getId());
+                    cartUpdatedDTO.setTotalQuantity(totalQuantity);
+                }
+
+            } else {
+                throw new NotFoundException("Not Found Cart Has This VersionNo");
+            }
+        }
+        return cartUpdatedDTO;
+    }
 }

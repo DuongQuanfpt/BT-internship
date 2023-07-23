@@ -14,14 +14,14 @@ public class CartDeleteRequest {
     /**
      * cart token
      */
-    @Size(min = 20 , max = 20)
+    @Size(max = 20)
     private String token;
     /**
-     * cartDetail id
+     * clear cart number
      */
     private int clearCart;
     /**
-     * cartDetail quantity (updated)
+     * cartDetail id
      */
     private int detailId;
     /**

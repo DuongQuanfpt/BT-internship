@@ -3,6 +3,7 @@ package finalproject.group1.BE.web.controller;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.services.CartService;
 import finalproject.group1.BE.web.dto.request.cart.CartAddRequest;
+import finalproject.group1.BE.web.dto.request.cart.CartDeleteRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartRequest;
 import finalproject.group1.BE.web.dto.request.cart.CartUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
@@ -79,6 +80,18 @@ public class CartController {
         }
 
         CartUpdateAndDeleteResponse response = cartService.updateCart(updateRequest, authentication);
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @DeleteMapping("/delete-cart")
+    public ResponseEntity deleteCart(@RequestBody @Valid CartDeleteRequest deleteRequest,
+                                     BindingResult bindingResult,
+                                     Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+
+        CartUpdateAndDeleteResponse response = cartService.deleteCart(deleteRequest, authentication);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 }
