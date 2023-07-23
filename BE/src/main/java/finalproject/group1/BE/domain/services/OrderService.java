@@ -125,7 +125,7 @@ public class OrderService {
         CreateOrderResponse response = new CreateOrderResponse();
         response.setDisplayId(savedOrder.getDisplayId());
         response.setTotalPrice(savedOrder.getTotalPrice());
-        return null;
+        return response;
     }
 
     /**
