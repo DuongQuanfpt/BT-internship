@@ -27,8 +27,7 @@ public class FileCommons {
                     , StandardCopyOption.REPLACE_EXISTING);
 
             String destinationPath = uploadDirectory + File.separator + fileName;
-            String fileUrl = destinationPath.substring(destinationPath.lastIndexOf(File.separator) + 1);
-            return fileUrl;
+            return destinationPath.substring(destinationPath.lastIndexOf(File.separator) + 1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -36,31 +35,36 @@ public class FileCommons {
 
     /**
      * delete file
+     *
      * @param filePath - path of file to delele
      */
-    public static void delete(String filePath,String uploadDirectory) {
+    public static void delete(String filePath, String uploadDirectory) {
         try {
             Path uploadDirectoryPath = Paths.get(uploadDirectory);
             Path resolvedFilePath = uploadDirectoryPath.resolve(filePath);
             // if file exist , delete the file
-            if(Files.exists(resolvedFilePath)){
+            if (Files.exists(resolvedFilePath)) {
                 Files.delete(resolvedFilePath);
             }
-        }catch (IOException e) {
-           throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * get file extension
-     * @param file
-     * @return
+     *
+     * @param file - file to get extension
+     * @return file extension
      */
     public static String getExtension(MultipartFile file) {
-        try{
+        try {
             String fileName = file.getOriginalFilename();
-            return fileName.substring(fileName.lastIndexOf("."));
-        } catch (IndexOutOfBoundsException e){ // if file name contain no extension
+            if (fileName != null) {
+                return fileName.substring(fileName.lastIndexOf("."));
+            }
+            return "";
+        } catch (IndexOutOfBoundsException e) { // if file name contain no extension
             e.printStackTrace();
             return "";
         }

@@ -29,7 +29,6 @@ public class SearchOrderRequest {
     /**
      * order date
      */
-//    @ValidDateFormat(message = "invalid date format")
     String orderDate;
 
     /**
