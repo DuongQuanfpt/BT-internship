@@ -1,26 +1,22 @@
 package finalproject.group1.BE.domain.services;
 
-import com.google.common.io.Files;
-import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.FileCommons;
-import finalproject.group1.BE.domain.entities.*;
+
+import finalproject.group1.BE.domain.entities.Category;
+import finalproject.group1.BE.domain.entities.CategoryImg;
+import finalproject.group1.BE.domain.entities.Image;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
+import finalproject.group1.BE.web.dto.request.category.UpdateCategoryRequest;
 import finalproject.group1.BE.web.dto.response.category.CategoryListResponse;
 import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
-import finalproject.group1.BE.web.exception.ExistException;
-import finalproject.group1.BE.web.exception.NotFoundException;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,15 +46,6 @@ public class CategoryService {
 
     public void createCategory(CreateCategoryRequest dto, Category category) {
 
-//         //Update category image
-//        CategoryImg categoryImg = category.getCategoryImg();
-//        //check if category has image
-//        if (categoryImg != null) {
-//            //delete existing image
-//            FileCommons.delete(categoryImg.getImage().getPath(), fileUploadDirectory);
-//            category.setCategoryImg(null);
-//        }
-
         //add image to category
         CategoryImg categoryImg = new CategoryImg();
         Image image = new Image();
@@ -72,6 +59,42 @@ public class CategoryService {
         category.setName(dto.getName());
         category.setCategoryImg(categoryImg);
 
+        categoryRepository.save(category);
+    }
+
+    /**
+     * update category information
+     * @param request
+     * @param id      - id of category to update
+     */
+    @Transactional
+    public void updateCategory(UpdateCategoryRequest request, int id) {
+        Category category = categoryRepository.findById(id).orElse(null);
+        if (category == null) { //if category not exist
+           return;
+        }
+        //update category information
+        category.setName(request.getName());
+        //if user upload new image
+        if (request.getImage() != null){
+            //delete old image
+            if(category.getCategoryImg() != null){
+                FileCommons.delete(category.getCategoryImg().getImage().getPath()
+                        ,fileUploadDirectory);
+            }
+            //create image
+            Image image = new Image();
+            image.setName(request.getImage().getOriginalFilename());
+            image.setPath(FileCommons.uploadFile(request.getImage(),
+                    RandomString.make(15),fileUploadDirectory));
+            image.setThumbnailFlag(ThumbnailFlag.NO);
+
+            //update category image
+            CategoryImg categoryImg = category.getCategoryImg();
+            categoryImg.setImage(image);
+
+        }
+        //save changes to DB
         categoryRepository.save(category);
     }
 }

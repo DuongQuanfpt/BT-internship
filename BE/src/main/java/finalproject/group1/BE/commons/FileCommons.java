@@ -4,9 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 public class FileCommons {
     /**
@@ -25,27 +23,46 @@ public class FileCommons {
                 Files.createDirectories(uploadDirectoryPath);
             }
 
-            Files.copy(file.getInputStream(), uploadDirectoryPath.resolve(fileName));
+            Files.copy(file.getInputStream(), uploadDirectoryPath.resolve(fileName)
+                    , StandardCopyOption.REPLACE_EXISTING);
 
             String destinationPath = uploadDirectory + File.separator + fileName;
             String fileUrl = destinationPath.substring(destinationPath.lastIndexOf(File.separator) + 1);
             return fileUrl;
         } catch (IOException e) {
-            return "Failed to upload file: " + e.getMessage();
+            throw new RuntimeException(e);
         }
     }
 
-    public static void delete(String filePath, String uploadDirectory) {
+    /**
+     * delete file
+     * @param filePath - path of file to delele
+     */
+    public static void delete(String filePath,String uploadDirectory) {
         try {
             Path uploadDirectoryPath = Paths.get(uploadDirectory);
-            Files.delete(uploadDirectoryPath.resolve(filePath));
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+            Path resolvedFilePath = uploadDirectoryPath.resolve(filePath);
+            // if file exist , delete the file
+            if(Files.exists(resolvedFilePath)){
+                Files.delete(resolvedFilePath);
+            }
+        }catch (IOException e) {
+           throw new RuntimeException(e);
         }
     }
 
+    /**
+     * get file extension
+     * @param file
+     * @return
+     */
     public static String getExtension(MultipartFile file) {
-        String fileName = file.getOriginalFilename();
-        return fileName.substring(fileName.lastIndexOf("."));
+        try{
+            String fileName = file.getOriginalFilename();
+            return fileName.substring(fileName.lastIndexOf("."));
+        } catch (IndexOutOfBoundsException e){ // if file name contain no extension
+            e.printStackTrace();
+            return "";
+        }
     }
 }
