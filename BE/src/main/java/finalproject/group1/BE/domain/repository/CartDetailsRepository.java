@@ -2,6 +2,7 @@ package finalproject.group1.BE.domain.repository;
 
 import finalproject.group1.BE.domain.entities.CartDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -22,4 +23,7 @@ public interface CartDetailsRepository extends JpaRepository<CartDetail,Integer>
 
     List<CartDetail> findByCartId(int cartId);
 
+    @Modifying
+    @Query("DELETE FROM CartDetail cd WHERE cd.cart.id = :cartId")
+    void deleteByCartId(int cartId);
 }
