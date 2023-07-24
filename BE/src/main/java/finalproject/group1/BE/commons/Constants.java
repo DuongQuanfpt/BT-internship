@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 public final class Constants {
-    public static final String IMAGE_FOLDER_PATH = "src/main/resources/img/";
     public static final String VALID_DATE_FORMAT = "yyyy-MM-dd";
     public static final String VALID_IMAGE_FILE_EXTENSION = ".jpg";
     public static final String THUMBNAIL_IMAGE_PREFIX = "_thumbnail";
     public static final String DETAIL_IMAGE_PREFIX = "_detail_";
+    public static final String DISPLAY_ID_FORMAT = "B%04d";
     public static final String ORDER_EMAIL_SUBJECT = "Order placed";
     public static final String ORDER_EMAIL_CONTENT = "Order %s has been placed";
     public static final String USER_LOCK_EMAIL_SUBJECT = "Account lock";
@@ -21,4 +21,5 @@ public final class Constants {
     public static final String REQUEST_PASSWORD_EMAIL_CONTENT = "<a href=\"url/%s\">reset password link</a>";
     public static final String RESET_PASSWORD_EMAIL_SUBJECT = "Reset password";
     public static final String RESET_PASSWORD_EMAIL_CONTENT = "New password : %s";
+    public static final String PRODUCT_NOT_AVAILABLE = "%s no longer available";
 }

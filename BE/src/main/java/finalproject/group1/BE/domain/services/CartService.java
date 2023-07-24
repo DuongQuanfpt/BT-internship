@@ -86,13 +86,13 @@ public class CartService {
         }
         newCartDetail.setPrice(product.getPrice());
         newCartDetail.setQuantity((newCartDetail.getQuantity()) + request.getQuantity());
-        newCartDetail.setTotalPrice((newCartDetail.getPrice()* newCartDetail.getQuantity()));
+        newCartDetail.setTotalPrice((newCartDetail.getPrice() * newCartDetail.getQuantity()));
 
         //save cart detail to db
         cartDetailsRepository.save(newCartDetail);
 
         //calculate new total prices of product in cart
-        savedCart.setTotalPrice( cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
+        savedCart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
         savedCart = cartRepository.save(savedCart);
 
         //calculate quantity and create response
@@ -103,6 +103,7 @@ public class CartService {
         response.setToken(cart.getToken());
         return response;
     }
+
     @Transactional
     public CartInfoResponse getCartInfo(CartRequest request, Authentication authentication) {
         User loginUser;
@@ -125,7 +126,7 @@ public class CartService {
                 CartInfoDetailResponse detailResponse = new CartInfoDetailResponse();
                 detailResponse = modelMapper.map(cartDetail, CartInfoDetailResponse.class);
                 //if product exist
-                if(cartDetail.getProduct().getDeleteFlag() == DeleteFlag.NORMAL){
+                if (cartDetail.getProduct().getDeleteFlag() == DeleteFlag.NORMAL) {
                     ImageData imageData = imageRepository.findProductThumbnail(cartDetail.getProduct().getId());
                     detailResponse.setImageName(imageData.getName());
                     detailResponse.setImagePath(imageData.getPath());
@@ -137,74 +138,78 @@ public class CartService {
 
         return response;
     }
+
     @Transactional
     public CartSyncResponse synccart(CartRequest request, User user) {
         int totalQuantity = 0;
+        CartSyncResponse response = new CartSyncResponse();
         Cart tokenCart = cartRepository.findByToken(request.getToken()).orElse(null);
-        // if cart when unauthenticated exist
-        if (tokenCart != null) {
-            Cart userCart = cartRepository.findByOwnerId(user.getId()).orElse(null);
-
-            //if login user has cart
+        Cart userCart = cartRepository.findByOwnerId(user.getId()).orElse(null);
+        // if cart when unauthenticated not exist
+        if (tokenCart == null) {
             if (userCart != null) {
-                //update user cart
-                List<CartDetail> tokenCartDetails = cartDetailsRepository.findByCartId(tokenCart.getId());
-                List<CartDetail> userCartDetails = cartDetailsRepository.findByCartId(userCart.getId());
-
-                tokenCartDetails.stream().forEach(tokenCartDetail -> {
-                    //if product is deleted
-                    if (tokenCartDetail.getProduct().getDeleteFlag() == DeleteFlag.DELETED){
-                        return; //skip to next detail
-                    }
-                    //get index of detail with matching product id (override equal)
-                    int index = userCartDetails.indexOf(tokenCartDetail);
-                    //if matching detail exist
-                    if( index != -1){
-                        //update quantity and total price
-                        CartDetail detail =  userCartDetails.get(index);
-
-                        detail.setPrice(detail.getProduct().getPrice());
-                        detail.setQuantity(detail.getQuantity() +tokenCartDetail.getQuantity());
-                        detail.setTotalPrice(detail.getPrice()*detail.getQuantity());
-                    } else {//if not exist
-                        Product product = tokenCartDetail.getProduct();
-                        // create new cart detail
-                        CartDetail newDetail = new CartDetail();
-
-                        newDetail.setCart(userCart);
-                        newDetail.setProduct(product);
-                        newDetail.setPrice(product.getPrice());
-                        newDetail.setQuantity(tokenCartDetail.getQuantity());
-                        newDetail.setTotalPrice(newDetail.getPrice()*newDetail.getQuantity());
-                        //add new detail to user cart details
-                        userCartDetails.add(newDetail);
-                    }
-                });
-                //delete cart when unauthenticated
-                cartDetailsRepository.deleteAll(tokenCartDetails);
-                cartRepository.delete(tokenCart);
-                //save changes to user cart details
-                cartDetailsRepository.saveAll(userCartDetails);
-
-                //update user cart
-                userCart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(userCart.getId()));
-                userCart.setVersionNo(userCart.getVersionNo()+1);
-                Cart savedCart = cartRepository.save(userCart);
-                totalQuantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
-
-
-            } else { // if login user has no cart
-                //set cart when unauthenticated owner to user
-                tokenCart.setToken(null);
-                tokenCart.setOwner(user);
-                tokenCart.setVersionNo(tokenCart.getVersionNo() + 1);
-
-                Cart savedcart = cartRepository.save(tokenCart);
-                totalQuantity = cartDetailsRepository.sumQuantityByCardId(savedcart.getId());
+                totalQuantity = cartDetailsRepository.sumQuantityByCardId(userCart.getId());
+                response.setTotalQuantity(totalQuantity);
             }
+            return response;
+        }
+        //if login user has cart
+        if (userCart != null) {
+            //update user cart
+            List<CartDetail> tokenCartDetails = cartDetailsRepository.findByCartId(tokenCart.getId());
+            List<CartDetail> userCartDetails = cartDetailsRepository.findByCartId(userCart.getId());
+
+            tokenCartDetails.stream().forEach(tokenCartDetail -> {
+                //if product is deleted
+                if (tokenCartDetail.getProduct().getDeleteFlag() == DeleteFlag.DELETED) {
+                    return; //skip to next detail
+                }
+                //get index of detail with matching product id (override equal)
+                int index = userCartDetails.indexOf(tokenCartDetail);
+                //if matching detail exist
+                if (index != -1) {
+                    //update quantity and total price
+                    CartDetail detail = userCartDetails.get(index);
+
+                    detail.setPrice(detail.getProduct().getPrice());
+                    detail.setQuantity(detail.getQuantity() + tokenCartDetail.getQuantity());
+                    detail.setTotalPrice(detail.getPrice() * detail.getQuantity());
+                } else {//if not exist
+                    Product product = tokenCartDetail.getProduct();
+                    // create new cart detail
+                    CartDetail newDetail = new CartDetail();
+
+                    newDetail.setCart(userCart);
+                    newDetail.setProduct(product);
+                    newDetail.setPrice(product.getPrice());
+                    newDetail.setQuantity(tokenCartDetail.getQuantity());
+                    newDetail.setTotalPrice(newDetail.getPrice() * newDetail.getQuantity());
+                    //add new detail to user cart details
+                    userCartDetails.add(newDetail);
+                }
+            });
+            //delete cart when unauthenticated
+            cartDetailsRepository.deleteAll(tokenCartDetails);
+            cartRepository.delete(tokenCart);
+            //save changes to user cart details
+            cartDetailsRepository.saveAll(userCartDetails);
+
+            //update user cart
+            userCart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(userCart.getId()));
+            userCart.setVersionNo(userCart.getVersionNo() + 1);
+            Cart savedCart = cartRepository.save(userCart);
+            totalQuantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
+
+        } else { // if login user has no cart
+            //set cart when unauthenticated owner to user
+            tokenCart.setToken(null);
+            tokenCart.setOwner(user);
+            tokenCart.setVersionNo(tokenCart.getVersionNo() + 1);
+
+            Cart savedcart = cartRepository.save(tokenCart);
+            totalQuantity = cartDetailsRepository.sumQuantityByCardId(savedcart.getId());
         }
 
-        CartSyncResponse response = new CartSyncResponse();
         response.setTotalQuantity(totalQuantity);
         return response;
     }
@@ -224,13 +229,12 @@ public class CartService {
         if (cart != null) {
 
             List<CartDetail> cartDetails = cartDetailsRepository.findByCartId(cart.getId());
-            for(CartDetail cartDetail : cartDetails) {
+            for (CartDetail cartDetail : cartDetails) {
                 totalQuantity += cartDetail.getQuantity();
             }
             cartQuantityDTO.setTotalQuantity(totalQuantity);
             cartQuantityDTO.setVersionNo(cart.getVersionNo());
-        }
-        else {
+        } else {
             throw new NotFoundException("Cart does not exist !!!");
         }
 
@@ -306,8 +310,7 @@ public class CartService {
                     // Delete the cart itself
                     cartRepository.deleteById(cart.getId());
                     cartUpdatedDTO.setTotalQuantity(0);
-                }
-                else if (deleteRequest.getClearCart() == 0) {
+                } else if (deleteRequest.getClearCart() == 0) {
                     cartDetailsRepository.deleteById(deleteRequest.getDetailId());
 
                     // Update the cart versionNo and cart totalPrice
