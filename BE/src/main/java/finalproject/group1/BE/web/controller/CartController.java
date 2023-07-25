@@ -59,15 +59,23 @@ public class CartController {
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
+    /**
+     * API for get total number of product in cart
+     *
+     * @param request temporary cart token if user not login
+     * @param bindingResult validate result
+     * @param authentication authentication object
+     * @return CartQuantityResponse number of product and newest cart version
+     */
     @GetMapping("/cart-quantity")
-    public ResponseEntity cartQuantity(@Valid @RequestBody CartRequest request,
+    public ResponseEntity<ResponseDTO<Object>> getCartQuantity(@Valid @RequestBody CartRequest request,
                                    BindingResult bindingResult,
                                    Authentication authentication){
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }
 
-        CartQuantityResponse response = cartService.cartQuantity(request,authentication);
+        CartQuantityResponse response = cartService.calculateCartQuantity(request,authentication);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
