@@ -21,7 +21,7 @@ public interface OrderRepository extends JpaRepository<Order,Integer> {
             "       and (:orderId is null or o.displayId = :orderId ) " +
             "       and (:orderDate is null or o.orderDate = :orderDate ) " +
             "       and (:status is null or o.status = :status ) " +
-            "       and (:userName is null or o.owner.userName = :userName ) " +
+            "       and (:userName is null or o.owner.userName like %:userName% ) " +
             "       and (:userId is null or o.owner.id = :userId  )" +
             " group by o.id ")
     List<Order> findOrderBySearchConditions(@Param("productName") String productName

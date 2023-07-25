@@ -264,6 +264,7 @@ public class CartService {
                 for (CartDetail cartDetail : cartDetails) {
                     if (cartDetail.getId() == updateRequest.getId()) {
                         // Update the quantity and calculate the new total price
+                        cartDetail.setPrice(cartDetail.getProduct().getPrice());
                         int newQuantity = updateRequest.getQuantity();
                         float newTotalPrice = cartDetail.getPrice() * newQuantity;
 

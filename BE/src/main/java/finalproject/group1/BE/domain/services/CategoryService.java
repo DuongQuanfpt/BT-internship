@@ -119,6 +119,12 @@ public class CategoryService {
 
         List<Product> productList = productRepository.findByCategoryId(id);
         if (productList.size() == 0) {
+            //delete old image
+            if(category.getCategoryImg() != null){
+                FileCommons.delete(category.getCategoryImg().getImage().getPath()
+                        ,fileUploadDirectory);
+            }
+
             imageRepository.deleteById(category.getCategoryImg().getImage().getId());
             categoryImgRepository.deleteById(category.getCategoryImg().getId());
             categoryRepository.deleteById(id);

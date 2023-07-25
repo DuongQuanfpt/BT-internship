@@ -258,7 +258,7 @@ public class UserService {
         String oldPassword = changePasswordRequest.getOldPassword();
         if (!passwordEncoder.matches(oldPassword, loginUser.getPassword())) {
             // Old password does not match the one in the database, throw an exception or handle the error
-            throw new IllegalArgumentException("Old password is incorrect");
+            throw new NotFoundException("Old password is incorrect");
         }
         else {
             // Change the password to the new one
