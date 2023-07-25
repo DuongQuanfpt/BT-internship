@@ -214,7 +214,16 @@ public class CartService {
         return response;
     }
 
-    public CartQuantityResponse cartQuantity(CartRequest request, Authentication authentication) {
+    /**
+     * Get cart quantity,
+     * if current user is login, get quantity for user cart,
+     * if user not login, get quantity from temporary cart
+     *
+     * @param request temporary cart token
+     * @param authentication authentication object
+     * @return quantity of products in cart, version after increase
+     */
+    public CartQuantityResponse calculateCartQuantity(CartRequest request, Authentication authentication) {
         User loginUser;
         Cart cart = null;
         if (authentication != null) {  //check if there are user login
@@ -224,19 +233,13 @@ public class CartService {
             cart = cartRepository.findByToken(request.getToken()).orElse(null);
         }
 
-        int totalQuantity = 0;
-        CartQuantityResponse cartQuantityDTO = new CartQuantityResponse();
-        if (cart != null) {
-
-            List<CartDetail> cartDetails = cartDetailsRepository.findByCartId(cart.getId());
-            for (CartDetail cartDetail : cartDetails) {
-                totalQuantity += cartDetail.getQuantity();
-            }
-            cartQuantityDTO.setTotalQuantity(totalQuantity);
-            cartQuantityDTO.setVersionNo(cart.getVersionNo());
-        } else {
+        if (cart == null) {
             throw new NotFoundException("Cart does not exist !!!");
         }
+        CartQuantityResponse cartQuantityDTO = new CartQuantityResponse();
+        int totalQuantity = cartDetailsRepository.sumQuantityByCardId(cart.getId());
+        cartQuantityDTO.setTotalQuantity(totalQuantity);
+        cartQuantityDTO.setVersionNo(cart.getVersionNo());
 
         return cartQuantityDTO;
     }
