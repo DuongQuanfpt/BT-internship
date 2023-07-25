@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -208,7 +210,32 @@ public class OrderService {
      * @param updateOrderRequest
      */
     @Transactional
-    public void updateOrder(UpdateOrderRequest updateOrderRequest) {
+    public void updateOrder(UpdateOrderRequest updateOrderRequest, Authentication authentication) {
+        User loginUser = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+        }
 
+        if (OrderStatus.getOrderStatus(updateOrderRequest.getStatus()) == null) {
+            throw new NotFoundException("Not Found Status !!!");
+        }
+
+        if (loginUser.getRole() == Role.ROLE_ADMIN) {
+            Optional<Order> orderOptional = orderRepository.findByIdAndDisplayId(updateOrderRequest.getId(), updateOrderRequest.getDisplayId());
+            Order order = orderOptional.orElseThrow(() -> new NotFoundException("Order not found with id and displayId"));
+
+            // Update the order status
+            order.setStatus(OrderStatus.getOrderStatus(updateOrderRequest.getStatus()));
+            orderRepository.save(order);
+
+        }
+        else if (loginUser.getRole() == Role.ROLE_USER) {
+            Optional<Order> orderOptional = orderRepository.findByOwnerIdAndDisplayId(loginUser.getId(), updateOrderRequest.getDisplayId());
+            Order order = orderOptional.orElseThrow(() -> new NotFoundException("Order not found with userId and displayId"));
+
+            // Update the order status
+            order.setStatus(OrderStatus.getOrderStatus(updateOrderRequest.getStatus()));
+            orderRepository.save(order);
+        }
     }
 }

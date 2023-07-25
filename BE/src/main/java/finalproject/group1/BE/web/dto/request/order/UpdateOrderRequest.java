@@ -21,5 +21,5 @@ public class UpdateOrderRequest {
     /**
      * order status
      */
-    private String status;
+    private int status;
 }
