@@ -55,8 +55,9 @@ public class OrderService {
 
     /**
      * create order
+     *
      * @param request - contain new order data
-     * @param user - login user
+     * @param user    - login user
      * @return product quantity in order and the order display id
      */
     @Transactional
@@ -69,12 +70,17 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException("cart not found"));
 
         List<CartDetail> cartDetailList = cartDetailsRepository.findByCartId(cart.getId());
-        cartDetailList.stream().forEach(detail -> {
-            //if product is deleted
-            if (detail.getProduct().getDeleteFlag() == DeleteFlag.DELETED){
-                throw new NotFoundException("Product not found");
-            }
-        });
+        //get details with deleted product
+        List<CartDetail> detailsOfDeletedProduct = cartDetailList.stream()
+                .filter(cartDetail -> cartDetail.getProduct().getDeleteFlag() == DeleteFlag.DELETED).toList();
+        //if details with deleted product exist
+        if (!detailsOfDeletedProduct.isEmpty()) {
+            String s = detailsOfDeletedProduct.stream()
+                    .map(cartDetail -> cartDetail.getProduct().getOldSku())
+                    .collect(Collectors.joining(","));
+            String msg = String.format(Constants.PRODUCT_NOT_AVAILABLE, s);
+            throw new NotFoundException(msg);
+        }
         //create new order
         Order order = new Order();
         order.setDisplayId("");
@@ -86,7 +92,7 @@ public class OrderService {
 
         //save order
         Order savedOrder = orderRepository.save(order);
-        order.setDisplayId(String.format("B" + "%04d", order.getId()));
+        savedOrder.setDisplayId(String.format(Constants.DISPLAY_ID_FORMAT, order.getId()));
         savedOrder = orderRepository.save(savedOrder);
 
         //create order details
@@ -118,7 +124,7 @@ public class OrderService {
         cartRepository.delete(cart);
 
         //send email to user and manager
-        String emailContent = String.format(Constants.ORDER_EMAIL_CONTENT,order.getDisplayId());
+        String emailContent = String.format(Constants.ORDER_EMAIL_CONTENT, order.getDisplayId());
         emailCommons.sendSimpleMessage(user.getEmail(), Constants.ORDER_EMAIL_SUBJECT, emailContent);
         emailCommons.sendSimpleMessage(managerEmail, Constants.ORDER_EMAIL_SUBJECT, emailContent);
 
@@ -131,9 +137,10 @@ public class OrderService {
 
     /**
      * get order by request
+     *
      * @param request
      * @param loginUser - the login user
-     * @param pageable - pagination criteria
+     * @param pageable  - pagination criteria
      * @return order list
      */
     public OrderSearchResponse searchOrder(SearchOrderRequest request, User loginUser, Pageable pageable) {

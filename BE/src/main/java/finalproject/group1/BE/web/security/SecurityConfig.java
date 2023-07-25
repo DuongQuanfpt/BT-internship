@@ -32,11 +32,11 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/users/register",
-                                "/api/v1/users/login", "/api/v1/products/search",
-                                "/api/v1/add-cart", "/api/v1/cart-info",
-                                "/api/v1/cart-quantity", "/api/v1/update-cart",
-                                "/api/v1/delete-cart", "/api/v1/users/request-password",
-                                "/api/v1/users/reset-password").permitAll()
+                                "/api/v1/users/login","/api/v1/add-cart",
+                                "/api/v1/cart-info", "/api/v1/cart-quantity",
+                                "/api/v1/update-cart", "/api/v1/delete-cart",
+                                "/api/v1/users/request-password", "/api/v1/users/reset-password",
+                                "/api/v1/products/search","/api/v1/products").permitAll()
                         .requestMatchers("/upload/").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
