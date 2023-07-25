@@ -1,6 +1,7 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
+import finalproject.group1.BE.web.dto.request.user.ChangePasswordRequest;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,11 +69,30 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteUser(@PathVariable(value = "id") int id){
+    public ResponseEntity deleteUserByAdmin(@PathVariable(value = "id") int id){
 
-        userService.delete(id);
+        userService.deleteUserByAdmin(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity deleteUser(Authentication authentication) {
+        userService.deleteUser(authentication);
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @PutMapping("/change-password")
+    public ResponseEntity changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest,
+                                     BindingResult bindingResult,
+                                     Authentication authentication){
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+
+        userService.changePassword(changePasswordRequest, authentication);
+        return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
+    }
 }

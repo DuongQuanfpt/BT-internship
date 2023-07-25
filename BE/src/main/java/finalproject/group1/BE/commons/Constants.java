@@ -21,4 +21,6 @@ public final class Constants {
     public static final String REQUEST_PASSWORD_EMAIL_CONTENT = "<a href=\"url/%s\">reset password link</a>";
     public static final String RESET_PASSWORD_EMAIL_SUBJECT = "Reset password";
     public static final String RESET_PASSWORD_EMAIL_CONTENT = "New password : %s";
+    public static final String DELETE_USER_EMAIL_SUBJECT = "Delete user";
+    public static final String DELETE_USER_EMAIL_CONTENT = "Account %s have been deleted";
 }
