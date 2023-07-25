@@ -10,6 +10,7 @@ import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.order.CreateOrderRequest;
 import finalproject.group1.BE.web.dto.request.order.SearchOrderRequest;
+import finalproject.group1.BE.web.dto.request.order.UpdateOrderRequest;
 import finalproject.group1.BE.web.dto.response.order.CreateOrderResponse;
 import finalproject.group1.BE.web.dto.response.order.OrderDetailResponse;
 import finalproject.group1.BE.web.dto.response.order.OrderResponse;
@@ -200,5 +201,14 @@ public class OrderService {
         OrderSearchResponse response = new OrderSearchResponse();
         response.setOrders(orderResponses);
         return response;
+    }
+
+    /**
+     * update order by request
+     * @param updateOrderRequest
+     */
+    @Transactional
+    public void updateOrder(UpdateOrderRequest updateOrderRequest) {
+
     }
 }

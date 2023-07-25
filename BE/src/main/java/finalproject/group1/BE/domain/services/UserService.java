@@ -9,10 +9,7 @@ import finalproject.group1.BE.domain.enums.Role;
 import finalproject.group1.BE.domain.enums.UserStatus;
 import finalproject.group1.BE.domain.repository.ChangedPasswordTokenRepository;
 import finalproject.group1.BE.domain.repository.UserRepository;
-import finalproject.group1.BE.web.dto.request.user.UserListRequest;
-import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
-import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
-import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
+import finalproject.group1.BE.web.dto.request.user.*;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
@@ -248,12 +245,39 @@ public class UserService {
     }
 
     /**
+     * change password of user
+     */
+    @Transactional
+    public void changePassword(ChangePasswordRequest changePasswordRequest, Authentication authentication) {
+        User loginUser = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+        }
+
+        // Verify the old password
+        String oldPassword = changePasswordRequest.getOldPassword();
+        if (!passwordEncoder.matches(oldPassword, loginUser.getPassword())) {
+            // Old password does not match the one in the database, throw an exception or handle the error
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+        else {
+            // Change the password to the new one
+            String newPassword = changePasswordRequest.getPassword();
+            String encodedNewPassword = passwordEncoder.encode(newPassword);
+            loginUser.setPassword(encodedNewPassword);
+
+            // Save the updated user with the new password
+            userRepository.save(loginUser);
+        }
+    }
+
+    /**
      * set user delete flag to true
      *
      * @param id - user id
      */
     @Transactional
-    public void delete(int id) {
+    public void deleteUserByAdmin(int id) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("User not found"));
         //update user information
@@ -263,5 +287,29 @@ public class UserService {
 
         //save to Db
         userRepository.save(user);
+    }
+
+    /**
+     * delete user
+     * set user delete flag to true
+     */
+    @Transactional
+    public void deleteUser(Authentication authentication) {
+        User loginUser = null;
+        if (authentication != null) {  //check if there are user login
+            loginUser = (User) authentication.getPrincipal();
+        }
+
+        //update user information
+        loginUser.setOldLoginId(loginUser.getEmail());
+        loginUser.setEmail(null);
+        loginUser.setDeleteFlag(DeleteFlag.DELETED);
+
+        //save to Db
+        userRepository.save(loginUser);
+
+        //sent reset password email to user
+        String emailContent = String.format(Constants.DELETE_USER_EMAIL_CONTENT, loginUser.getUserName());
+        emailCommons.sendSimpleMessage(loginUser.getOldLoginId(), Constants.DELETE_USER_EMAIL_SUBJECT, emailContent);
     }
 }

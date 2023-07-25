@@ -19,7 +19,7 @@ public class CartAddRequest {
     /**
      * token cart for unauthenticated user
      */
-    @Size(min = 20 , max = 20)
+    @Size(max = 20)
     String token;
 
     /**
