@@ -12,16 +12,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDetailResponse {
-    private int id;
+public class ProductImageResponse {
     @NotEmpty
-    private String sku;
+    private List<String> path;
     @NotEmpty
-    private String name;
-    @NotEmpty
-    private String detailInfo;
-    @NotEmpty
-    private Float price;
-    @NotEmpty
-    ProductImageResponse images;
+    private List<String> name;
 }

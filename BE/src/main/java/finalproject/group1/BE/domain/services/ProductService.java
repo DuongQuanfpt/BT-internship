@@ -16,6 +16,7 @@ import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.response.PageableDTO;
 import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductImageResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductResponse;
 import finalproject.group1.BE.web.exception.ExistException;
@@ -86,17 +87,19 @@ public class ProductService {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
             throw new NotFoundException("Product not found with SKU: " + sku);
         }));
+
+        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
+        ProductImageResponse productImageResponse = new ProductImageResponse();
+        productImageResponse.setName(imagesData.stream().map(imageData -> imageData.getName()).collect(Collectors.toList()));
+        productImageResponse.setPath(imagesData.stream().map(imageData -> imageData.getPath()).collect(Collectors.toList()));
+
         ProductDetailResponse productDetailsDTO = new ProductDetailResponse();
         productDetailsDTO.setId(productDetail.get().getId());
         productDetailsDTO.setSku(productDetail.get().getSku());
         productDetailsDTO.setName(productDetail.get().getName());
         productDetailsDTO.setDetailInfo(productDetail.get().getDetailInfo());
         productDetailsDTO.setPrice(productDetail.get().getPrice());
-
-        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
-
-        productDetailsDTO.setImageName(imagesData.stream().map(imageData -> imageData.getName()).collect(Collectors.toList()));
-        productDetailsDTO.setImagePath(imagesData.stream().map(imageData -> imageData.getPath()).collect(Collectors.toList()));
+        productDetailsDTO.setImages(productImageResponse);
 
         return productDetailsDTO;
     }
