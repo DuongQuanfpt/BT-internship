@@ -1,5 +1,7 @@
 package finalproject.group1.BE.web.dto.response.order;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import finalproject.group1.BE.commons.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +19,8 @@ public class OrderResponse {
     String displayId;
     String username;
     float totalPrice;
+
+    @JsonFormat(pattern= Constants.VALID_DATE_FORMAT)
     LocalDate orderDate;
     String orderStatus;
     String shippingAddress;
