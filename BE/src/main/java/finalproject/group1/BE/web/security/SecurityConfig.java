@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/api/v1/update-cart", "/api/v1/delete-cart",
                                 "/api/v1/users/request-password", "/api/v1/users/reset-password",
                                 "/api/v1/products/search","/api/v1/products").permitAll()
-                        .requestMatchers("/upload/").permitAll()
+                        .requestMatchers("/upload/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
