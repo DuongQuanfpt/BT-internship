@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,7 +20,7 @@ public class EmailCommons {
     @Value("${spring.mail.username}")
     private String sender;
 
-
+    @Async
     public void sendSimpleMessage(String to, String subject, String text ) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);
@@ -28,7 +29,7 @@ public class EmailCommons {
         message.setText(text);
         emailSender.send(message);
     }
-
+    @Async
     public void sendMimeMessage(String to, String subject, String text ) {
         try {
             MimeMessage mimeMessage = emailSender.createMimeMessage();
