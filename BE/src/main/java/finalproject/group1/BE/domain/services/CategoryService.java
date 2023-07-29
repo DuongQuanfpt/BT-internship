@@ -5,11 +5,17 @@ import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.entities.CategoryImg;
 import finalproject.group1.BE.domain.entities.Image;
+import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
+import finalproject.group1.BE.domain.repository.CategoryImgRepository;
 import finalproject.group1.BE.domain.repository.CategoryRepository;
+import finalproject.group1.BE.domain.repository.ImageRepository;
+import finalproject.group1.BE.domain.repository.ProductRepository;
 import finalproject.group1.BE.web.dto.request.category.UpdateCategoryRequest;
 import finalproject.group1.BE.web.dto.response.category.CategoryListResponse;
 import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
+import finalproject.group1.BE.web.exception.DeleteCategoryException;
+import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
@@ -24,6 +30,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final CategoryImgRepository categoryImgRepository;
+    private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
 
     @Value("${file.upload.category-directory}")
@@ -96,5 +105,32 @@ public class CategoryService {
         }
         //save changes to DB
         categoryRepository.save(category);
+    }
+
+    /**
+     * delete category information
+     * @param id - id of category to delete
+     */
+    @Transactional
+    public void deleteCategory(int id) {
+        Category category = categoryRepository.findById(id).orElseThrow(() -> {
+            throw new NotFoundException("Category Not Found !!!");
+        });
+
+        List<Product> productList = productRepository.findByCategoryId(id);
+        if (productList.size() == 0) {
+            //delete old image
+            if(category.getCategoryImg() != null){
+                FileCommons.delete(category.getCategoryImg().getImage().getPath()
+                        ,fileUploadDirectory);
+            }
+
+            imageRepository.deleteById(category.getCategoryImg().getImage().getId());
+            categoryImgRepository.deleteById(category.getCategoryImg().getId());
+            categoryRepository.deleteById(id);
+        }
+        else {
+            throw new DeleteCategoryException("This category cannot be deleted because there are related products!");
+        }
     }
 }

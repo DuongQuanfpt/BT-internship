@@ -51,5 +51,10 @@ public class CategoryController {
         return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
     }
 
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity deleteCategory(@PathVariable(value = "id") int id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
+    }
 }

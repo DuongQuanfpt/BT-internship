@@ -49,6 +49,12 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(DeleteCategoryException.class)
+    public ResponseEntity DeleteCategoryHandler(DeleteCategoryException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     /**
      * Handle for validate exception, return error message
      * Example for return response from BindingResult
