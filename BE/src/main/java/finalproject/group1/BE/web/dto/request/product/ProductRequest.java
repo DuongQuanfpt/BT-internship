@@ -29,7 +29,7 @@ public class ProductRequest {
      */
     @NotEmpty
     @Size(max = 50)
-    @Pattern(regexp = "^[A-Z0-9-]{0,51}")
+    @Pattern(regexp = "^[A-Z0-9-]{0,51}",message = "sku must consist of uppercase and number")
     private String sku;
 
     /**
