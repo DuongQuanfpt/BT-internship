@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,10 +32,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -50,6 +53,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtHelper jwtHelper;
+    private RedisTemplate<String,String> redisTemplate;
 
     @Transactional
     public void saveUser(UserRegisterRequest registerRequest) {
@@ -85,6 +89,11 @@ public class UserService {
         user = userRepository.findByEmail(user.getEmail()).get();
 
         String token = jwtHelper.createToken(user);
+        //save token to redis server
+        redisTemplate.opsForValue().set(user.getEmail(),token);
+        redisTemplate.expireAt(user.getEmail(),jwtHelper.extractExpiration(token));
+        System.out.println(redisTemplate.opsForValue().get(user.getEmail()));
+
         return new UserLoginResponse(token);
     }
 
