@@ -2,6 +2,7 @@ package finalproject.group1.BE.domain.services;
 
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.FileCommons;
+import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.entities.Image;
 import finalproject.group1.BE.domain.entities.Product;
@@ -42,9 +43,10 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
+    private final GoogleDriveCommons googleDriveCommons;
 
-    @Value("${file.upload.product-directory}")
-    private String fileUploadDirectory;
+    @Value("${drive.upload.product}")
+    private String driveProductDirectory;
 
     public ProductListResponse getProductList(ProductListRequest listRequest, Pageable pageable) {
 
@@ -132,6 +134,8 @@ public class ProductService {
         List<ProductImg> productImgs = product.getProductImgs();
         //check if product has images
         if (!productImgs.isEmpty()) {
+            productImgs.forEach(productImg ->
+                    googleDriveCommons.deleteFileOrFolder(productImg.getImage().getPath()));
             productImgs.clear();
         }
 
@@ -143,8 +147,7 @@ public class ProductService {
 
             Image image = new Image();
             image.setName(multipartFile.getOriginalFilename());
-            image.setPath(FileCommons.uploadFile(multipartFile, product.getSku() +
-                    Constants.DETAIL_IMAGE_PREFIX + count, fileUploadDirectory));
+            image.setPath(googleDriveCommons.uploadFile(multipartFile,driveProductDirectory));
             image.setThumbnailFlag(ThumbnailFlag.NO);
 
             productImg.setProduct(finalProduct);
@@ -159,8 +162,9 @@ public class ProductService {
 
         Image image = new Image();
         image.setName(request.getThumbnailImage().getOriginalFilename());
-        image.setPath(FileCommons.uploadFile(request.getThumbnailImage(), product.getSku()
-                + Constants.THUMBNAIL_IMAGE_PREFIX, fileUploadDirectory));
+//        image.setPath(FileCommons.uploadFile(request.getThumbnailImage(), product.getSku()
+//                + Constants.THUMBNAIL_IMAGE_PREFIX, fileUploadDirectory));
+        image.setPath(googleDriveCommons.uploadFile(request.getThumbnailImage(), driveProductDirectory));
         image.setThumbnailFlag(ThumbnailFlag.YES);
 
         thumbnailImg.setProduct(product);
@@ -190,8 +194,7 @@ public class ProductService {
             List<ProductImg> productImgs = product.getProductImgs();
             productImgs.stream().forEach(productImg -> {
                 //delete images in server
-                FileCommons.delete(productImg.getImage().getPath()
-                        ,fileUploadDirectory);
+                googleDriveCommons.deleteFileOrFolder(productImg.getImage().getPath());
             });
             product.getProductImgs().clear();
 

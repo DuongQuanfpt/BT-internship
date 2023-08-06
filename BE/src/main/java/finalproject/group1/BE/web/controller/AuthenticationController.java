@@ -1,6 +1,7 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
+import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
 import finalproject.group1.BE.web.dto.request.user.PasswordResetRequest;
 import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.user.UserPasswordRequest;
