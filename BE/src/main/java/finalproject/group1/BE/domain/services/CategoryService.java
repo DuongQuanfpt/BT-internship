@@ -2,6 +2,7 @@ package finalproject.group1.BE.domain.services;
 
 import finalproject.group1.BE.commons.FileCommons;
 
+import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.entities.CategoryImg;
 import finalproject.group1.BE.domain.entities.Image;
@@ -34,9 +35,10 @@ public class CategoryService {
     private final CategoryImgRepository categoryImgRepository;
     private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
+    private final GoogleDriveCommons googleDriveCommons;
 
-    @Value("${file.upload.category-directory}")
-    private String fileUploadDirectory;
+    @Value("${drive.upload.category}")
+    private String driveCategoryDirectory;
 
     public List<CategoryListResponse> getAllCategories() {
         List<Category> categories = categoryRepository.findAll();
@@ -59,7 +61,7 @@ public class CategoryService {
         CategoryImg categoryImg = new CategoryImg();
         Image image = new Image();
         image.setName(dto.getImage().getOriginalFilename());
-        image.setPath(FileCommons.uploadFile(dto.getImage(), RandomString.make(15), fileUploadDirectory));
+        image.setPath(googleDriveCommons.uploadFile(dto.getImage(),driveCategoryDirectory));
         image.setThumbnailFlag(ThumbnailFlag.NO);
 
         categoryImg.setCategory(category);
@@ -88,14 +90,12 @@ public class CategoryService {
         if (request.getImage() != null){
             //delete old image
             if(category.getCategoryImg() != null){
-                FileCommons.delete(category.getCategoryImg().getImage().getPath()
-                        ,fileUploadDirectory);
+                googleDriveCommons.deleteFileOrFolder(category.getCategoryImg().getImage().getPath());
             }
             //create image
             Image image = new Image();
             image.setName(request.getImage().getOriginalFilename());
-            image.setPath(FileCommons.uploadFile(request.getImage(),
-                    RandomString.make(15),fileUploadDirectory));
+            image.setPath(googleDriveCommons.uploadFile(request.getImage(),driveCategoryDirectory));
             image.setThumbnailFlag(ThumbnailFlag.NO);
 
             //update category image
@@ -121,8 +121,7 @@ public class CategoryService {
         if (productList.size() == 0) {
             //delete old image
             if(category.getCategoryImg() != null){
-                FileCommons.delete(category.getCategoryImg().getImage().getPath()
-                        ,fileUploadDirectory);
+                googleDriveCommons.deleteFileOrFolder(category.getCategoryImg().getImage().getPath());
             }
 
             imageRepository.deleteById(category.getCategoryImg().getImage().getId());

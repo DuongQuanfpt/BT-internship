@@ -1,5 +1,8 @@
 package finalproject.group1.BE.web.controller;
 
+import com.google.api.services.drive.model.File;
+import finalproject.group1.BE.commons.EmailCommons;
+import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.services.CategoryService;
 import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
@@ -16,13 +19,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/categories")
 @AllArgsConstructor
 public class CategoryController {
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @GetMapping("/search")
     public ResponseEntity getAllCategories() {
