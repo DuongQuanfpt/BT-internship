@@ -132,8 +132,4 @@ public class CategoryService {
             throw new DeleteCategoryException("This category cannot be deleted because there are related products!");
         }
     }
-
-    public void demoUpload(CreateCategoryRequest request) {
-        googleDriveCommons.uploadFile(request.getImage(),driveCategoryDirectory);
-    }
 }

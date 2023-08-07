@@ -29,21 +29,6 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
 
-    private final GoogleDriveCommons googleDriveCommons;
-    @PostMapping(value = "/demo",consumes = { MediaType.APPLICATION_JSON_VALUE,
-            MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity uploadDemo(@ModelAttribute CreateCategoryRequest request ) {
-        categoryService.demoUpload(request);
-        return ResponseEntity.ok().body(ResponseDTO.build()
-                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
-    }
-
-    @GetMapping({"/filelist"})
-    public ResponseEntity<List<File>> listEverything() throws IOException, GeneralSecurityException, GeneralSecurityException, IOException {
-        List<File> files = googleDriveCommons.listEverything();
-        return ResponseEntity.ok(files);
-    }
-
     @GetMapping("/search")
     public ResponseEntity getAllCategories() {
         List<CategoryListResponse> response = categoryService.getAllCategories();

@@ -24,7 +24,7 @@ public class GoogleDriveCommons {
 
     public List<File> listEverything() throws IOException, GeneralSecurityException {
         // Print the names and IDs for up to 10 files.
-        String query = " mimeType = 'application/vnd.google-apps.folder' and 'me' in owners ";
+        String query = " 'me' in owners ";
         FileList result = googleDriveConfig.getDrive().files().list()
                 .setQ(query)
                 .setPageSize(10)
