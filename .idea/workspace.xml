@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5462214e-631c-45ed-be50-f1a7f730f564" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/BE/src/main/java/finalproject/group1/BE/domain/services/ProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BE/src/main/java/finalproject/group1/BE/domain/services/ProductService.java" afterDir="false" />
-    </list>
+    <list default="true" id="5462214e-631c-45ed-be50-f1a7f730f564" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,7 +37,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/asd/Desktop/Beetech/Final Project/BE"
+    "last_opened_file_path": "C:/Users/admin/Desktop/Beetech/BT-internship/BE"
   }
 }]]></component>
   <component name="RunManager">
