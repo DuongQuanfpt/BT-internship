@@ -1,18 +1,21 @@
 package finalproject.group1.BE.commons;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import finalproject.group1.BE.web.config.GoogleDriveConfig;
+import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -119,16 +122,35 @@ public class GoogleDriveCommons {
     public void deleteFileOrFolder(String fileId) {
         try {
             googleDriveConfig.getDrive().files().delete(fileId).execute();
-        }catch (GoogleJsonResponseException e){
-            if(e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND){
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
                 throw new RuntimeException(e);
             }
-         //do nothing
+            throw new NotFoundException("File not found on drive");
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    // Download file by id
+    public void downloadFile(String id, OutputStream outputStream) {
+        if (id != null) {
+            try {
+                googleDriveConfig.getDrive().files()
+                        .get(id).executeMediaAndDownloadTo(outputStream);
+            }catch (HttpResponseException e) {
+                if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
+                    throw new RuntimeException(e);
+                }
+                throw new NotFoundException("File not found on drive");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (GeneralSecurityException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
