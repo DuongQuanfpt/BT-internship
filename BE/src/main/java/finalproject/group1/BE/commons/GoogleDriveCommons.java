@@ -10,6 +10,7 @@ import com.google.api.services.drive.model.FileList;
 import finalproject.group1.BE.web.config.GoogleDriveConfig;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -126,7 +127,7 @@ public class GoogleDriveCommons {
             if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
                 throw new RuntimeException(e);
             }
-            throw new NotFoundException("File not found on drive");
+
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
