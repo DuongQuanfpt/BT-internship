@@ -1,6 +1,8 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.Product;
+import finalproject.group1.BE.domain.entities.User;
+import finalproject.group1.BE.domain.services.FavoriteProductService;
 import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
@@ -11,11 +13,13 @@ import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +28,20 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/products")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProductController {
-    private ProductService productService;
+    private final ProductService productService;
 
+    private final FavoriteProductService favoriteProductService;
+
+    @PostMapping("/favorite/{productId}")
+    public ResponseEntity addProductToFavorite(@PathVariable("productId") int productId
+            , Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        favoriteProductService.save(user.getId(),productId);
+        return ResponseEntity.ok(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
     @PostMapping("/search")
     public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
                                          BindingResult bindingResult, Pageable pageable) {

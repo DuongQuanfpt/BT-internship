@@ -126,9 +126,9 @@ public class OrderService {
         cartRepository.delete(cart);
 
         //send email to user and manager
+        String[] toEmails = {managerEmail,user.getEmail()};
         String emailContent = String.format(Constants.ORDER_EMAIL_CONTENT, order.getDisplayId());
-        emailCommons.sendSimpleMessage(user.getEmail(), Constants.ORDER_EMAIL_SUBJECT, emailContent);
-        emailCommons.sendSimpleMessage(managerEmail, Constants.ORDER_EMAIL_SUBJECT, emailContent);
+        emailCommons.sendSimpleMessage(toEmails, Constants.ORDER_EMAIL_SUBJECT, emailContent);
 
         // create response
         CreateOrderResponse response = new CreateOrderResponse();

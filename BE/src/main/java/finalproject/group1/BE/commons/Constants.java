@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 public final class Constants {
     public static final String VALID_DATE_FORMAT = "yyyy-MM-dd";
     public static final String VALID_IMAGE_FILE_EXTENSION = ".jpg";
-    public static final String THUMBNAIL_IMAGE_PREFIX = "_thumbnail";
-    public static final String DETAIL_IMAGE_PREFIX = "_detail_";
     public static final String DISPLAY_ID_FORMAT = "B%04d";
     public static final String ORDER_EMAIL_SUBJECT = "Order placed";
     public static final String ORDER_EMAIL_CONTENT = "Order %s has been placed";
@@ -24,4 +22,8 @@ public final class Constants {
     public static final String DELETE_USER_EMAIL_SUBJECT = "Delete user";
     public static final String DELETE_USER_EMAIL_CONTENT = "Account %s have been deleted";
     public static final String PRODUCT_NOT_AVAILABLE = "%s no longer available";
+    public static final String FAVORITE_PRODUCT_UPDATE_SUBJECT = "Favorite product updated";
+    public static final String FAVORITE_PRODUCT_UPDATE_CONTENT = "%s has been updated";
+    public static final String FAVORITE_PRODUCT_DElETE_SUBJECT = "Favorite product removed";
+    public static final String FAVORITE_PRODUCT_DELETE_CONTENT = "%s has been removed";
 }

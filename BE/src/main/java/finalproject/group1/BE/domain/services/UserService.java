@@ -53,7 +53,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtHelper jwtHelper;
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Transactional
     public void saveUser(UserRegisterRequest registerRequest) {
@@ -90,8 +90,8 @@ public class UserService {
 
         String token = jwtHelper.createToken(user);
         //save token to redis server
-        redisTemplate.opsForValue().set(user.getEmail(),token);
-        redisTemplate.expireAt(user.getEmail(),jwtHelper.extractExpiration(token));
+        redisTemplate.opsForValue().set(user.getEmail(), token);
+        redisTemplate.expireAt(user.getEmail(), jwtHelper.extractExpiration(token));
         System.out.println(redisTemplate.opsForValue().get(user.getEmail()));
 
         return new UserLoginResponse(token);
@@ -160,8 +160,9 @@ public class UserService {
             user.setStatus(UserStatus.LOCKED);
             userRepository.save(user);
 
+            String[] toEmails = {user.getEmail()};
             String emailContent = String.format(Constants.USER_LOCK_EMAIL_CONTENT, user.getEmail());
-            emailCommons.sendSimpleMessage(user.getEmail(), Constants.USER_LOCK_EMAIL_SUBJECT, emailContent);
+            emailCommons.sendSimpleMessage(toEmails, Constants.USER_LOCK_EMAIL_SUBJECT, emailContent);
         }
     }
 
@@ -219,8 +220,9 @@ public class UserService {
         ChangedPasswordToken savedToken = userRepository.save(user).getChangedPasswordTokens();
 
         //sent reset password email to user
+        String[] toEmails = {user.getEmail()};
         String emailContent = String.format(Constants.REQUEST_PASSWORD_EMAIL_CONTENT, savedToken.getToken());
-        emailCommons.sendMimeMessage(user.getEmail(), Constants.REQUEST_PASSWORD_EMAIL_SUBJECT, emailContent);
+        emailCommons.sendMimeMessage(toEmails, Constants.REQUEST_PASSWORD_EMAIL_SUBJECT, emailContent);
     }
 
     /**
@@ -249,8 +251,9 @@ public class UserService {
         ///save changes to DB
         User savedUser = userRepository.save(user);
         //sent new password to user email
+        String[] toEmails = {user.getEmail()};
         String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT, newPassword);
-        emailCommons.sendSimpleMessage(user.getEmail(), Constants.RESET_PASSWORD_EMAIL_SUBJECT, emailContent);
+        emailCommons.sendSimpleMessage(toEmails, Constants.RESET_PASSWORD_EMAIL_SUBJECT, emailContent);
 
     }
 
@@ -269,8 +272,7 @@ public class UserService {
         if (!passwordEncoder.matches(oldPassword, loginUser.getPassword())) {
             // Old password does not match the one in the database, throw an exception or handle the error
             throw new IllegalArgumentException("Old password is incorrect");
-        }
-        else {
+        } else {
             // Change the password to the new one
             String newPassword = changePasswordRequest.getPassword();
             String encodedNewPassword = passwordEncoder.encode(newPassword);
@@ -319,7 +321,8 @@ public class UserService {
         userRepository.save(loginUser);
 
         //sent reset password email to user
+        String[] toEmails = {loginUser.getOldLoginId()};
         String emailContent = String.format(Constants.DELETE_USER_EMAIL_CONTENT, loginUser.getUserName());
-        emailCommons.sendSimpleMessage(loginUser.getOldLoginId(), Constants.DELETE_USER_EMAIL_SUBJECT, emailContent);
+        emailCommons.sendSimpleMessage(toEmails, Constants.DELETE_USER_EMAIL_SUBJECT, emailContent);
     }
 }
