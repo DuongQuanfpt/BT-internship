@@ -21,16 +21,7 @@ public class EmailCommons {
     private String sender;
 
     @Async
-    public void sendSimpleMessage(String to, String subject, String text ) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(sender);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        emailSender.send(message);
-    }
-    @Async
-    public void sendMimeMessage(String to, String subject, String text ) {
+    public void sendMimeMessage(String[] to, String subject, String text ) {
         try {
             MimeMessage mimeMessage = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
@@ -45,7 +36,7 @@ public class EmailCommons {
     }
 
     @Async
-    public void sendSimpleMessage2(String[] to, String subject, String text ) {
+    public void sendSimpleMessage(String[] to, String subject, String text ) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);
         message.setTo(to);

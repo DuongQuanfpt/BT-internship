@@ -120,7 +120,7 @@ public class ProductService {
         }).toArray(String[]::new);
 
         String content = String.format(Constants.FAVORITE_PRODUCT_UPDATE_CONTENT,updatedProduct.getSku());
-        emailCommons.sendSimpleMessage2(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT,content);
+        emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT,content);
     }
 
     @Transactional
@@ -221,7 +221,7 @@ public class ProductService {
             favoriteProductRepository.deleteAll(favoriteProducts);
             //send mail to user
             String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT,deletedProduct.getOldSku());
-            emailCommons.sendSimpleMessage2(userEmails,Constants.FAVORITE_PRODUCT_DElETE_SUBJECT,content);
+            emailCommons.sendSimpleMessage(userEmails,Constants.FAVORITE_PRODUCT_DElETE_SUBJECT,content);
         }
     }
 }
