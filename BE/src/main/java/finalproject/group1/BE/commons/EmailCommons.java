@@ -43,4 +43,14 @@ public class EmailCommons {
             throw new RuntimeException(e);
         }
     }
+
+    @Async
+    public void sendSimpleMessage2(String[] to, String subject, String text ) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(sender);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        emailSender.send(message);
+    }
 }
