@@ -108,10 +108,13 @@ public class ProductService {
 
 
     public void update(int id, ProductRequest updateRequest) {
+        long start = System.currentTimeMillis();
         Product product = productRepository.findById(id).orElseThrow(() -> {
             throw new NotFoundException("Product Not Found");
         });
         save(updateRequest, product);
+        long end = System.currentTimeMillis();
+        System.out.println("update product : " + (end - start));
     }
 
     @Transactional
@@ -134,15 +137,33 @@ public class ProductService {
         List<ProductImg> productImgs = product.getProductImgs();
         //check if product has images
         if (!productImgs.isEmpty()) {
-            productImgs.forEach(productImg ->
-                    googleDriveCommons.deleteFileOrFolder(productImg.getImage().getPath()));
+            productImgs.forEach(productImg -> new Thread(() -> googleDriveCommons.
+                    deleteFileOrFolder(productImg.getImage().getPath())).start());
             productImgs.clear();
         }
 
+        //add thumbnail image to product
+        Thread thread = new Thread(){
+            public void run(){
+                ProductImg thumbnailImg = new ProductImg();
+
+                Image image = new Image();
+                image.setName(request.getThumbnailImage().getOriginalFilename());
+                image.setPath(googleDriveCommons.uploadFile(request.getThumbnailImage(), driveProductDirectory));
+                image.setThumbnailFlag(ThumbnailFlag.YES);
+
+                thumbnailImg.setProduct(product);
+                thumbnailImg.setImage(image);
+
+                productImgs.add(thumbnailImg);
+                product.setProductImgs(productImgs);
+            }
+        };
+        thread.start();
+
         //add detail images to product
         Product finalProduct = product;
-        AtomicInteger count = new AtomicInteger(1);
-        productImgs.addAll(request.getDetailImage().stream().map(multipartFile -> {
+        productImgs.addAll(request.getDetailImage().parallelStream().map(multipartFile -> {
             ProductImg productImg = new ProductImg();
 
             Image image = new Image();
@@ -152,26 +173,9 @@ public class ProductService {
 
             productImg.setProduct(finalProduct);
             productImg.setImage(image);
-
-            count.getAndIncrement();
             return productImg;
         }).collect(Collectors.toList()));
 
-        //add thumbnail image to product
-        ProductImg thumbnailImg = new ProductImg();
-
-        Image image = new Image();
-        image.setName(request.getThumbnailImage().getOriginalFilename());
-//        image.setPath(FileCommons.uploadFile(request.getThumbnailImage(), product.getSku()
-//                + Constants.THUMBNAIL_IMAGE_PREFIX, fileUploadDirectory));
-        image.setPath(googleDriveCommons.uploadFile(request.getThumbnailImage(), driveProductDirectory));
-        image.setThumbnailFlag(ThumbnailFlag.YES);
-
-        thumbnailImg.setProduct(product);
-        thumbnailImg.setImage(image);
-
-        productImgs.add(thumbnailImg);
-        product.setProductImgs(productImgs);
         // save changes to db
         productRepository.save(product);
     }
