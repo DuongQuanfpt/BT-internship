@@ -67,6 +67,11 @@ public class UserController {
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
+    @PutMapping("/import")
+    public ResponseEntity importUser(){
+        return null;
+    }
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity deleteUserByAdmin(@PathVariable(value = "id") int id){
