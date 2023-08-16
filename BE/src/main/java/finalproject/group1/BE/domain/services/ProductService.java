@@ -112,6 +112,8 @@ public class ProductService {
         });
         Product updatedProduct = save(updateRequest, product);
 
+        long end = System.currentTimeMillis();
+        System.out.println("update product : " + (end - start));
         //send email to users that flag this product as favorite
         List<FavoriteProduct> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
         String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
@@ -120,11 +122,11 @@ public class ProductService {
             return user.getEmail();
         }).toArray(String[]::new);
 
+        if(userEmails.length == 0) {
+            return;
+        }
         String content = String.format(Constants.FAVORITE_PRODUCT_UPDATE_CONTENT,updatedProduct.getSku());
         emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT,content);
-        save(updateRequest, product);
-        long end = System.currentTimeMillis();
-        System.out.println("update product : " + (end - start));
     }
 
     @Transactional
@@ -153,7 +155,7 @@ public class ProductService {
         }
 
         //add thumbnail image to product
-        Thread thread = new Thread(){
+        Thread addThumbnail = new Thread(){
             public void run(){
                 ProductImg thumbnailImg = new ProductImg();
 
@@ -166,10 +168,9 @@ public class ProductService {
                 thumbnailImg.setImage(image);
 
                 productImgs.add(thumbnailImg);
-                product.setProductImgs(productImgs);
             }
         };
-        thread.start();
+        addThumbnail.start();
 
         //add detail images to product
         Product finalProduct = product;
@@ -186,8 +187,14 @@ public class ProductService {
             return productImg;
         }).collect(Collectors.toList()));
 
-        // save changes to db
-        return productRepository.save(product);
+        try {
+            addThumbnail.join();
+            product.setProductImgs(productImgs);
+            // save changes to db
+            return productRepository.save(product);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -227,6 +234,10 @@ public class ProductService {
 
             favoriteProductRepository.deleteAll(favoriteProducts);
             //send mail to user
+            if(userEmails.length == 0) {
+                return;
+            }
+
             String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT,deletedProduct.getOldSku());
             emailCommons.sendSimpleMessage(userEmails,Constants.FAVORITE_PRODUCT_DElETE_SUBJECT,content);
         }
