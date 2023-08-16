@@ -1,17 +1,13 @@
 package finalproject.group1.BE.domain.services;
 
 import finalproject.group1.BE.commons.Constants;
+import finalproject.group1.BE.commons.EmailCommons;
 import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.commons.GoogleDriveCommons;
-import finalproject.group1.BE.domain.entities.Category;
-import finalproject.group1.BE.domain.entities.Image;
-import finalproject.group1.BE.domain.entities.Product;
-import finalproject.group1.BE.domain.entities.ProductImg;
+import finalproject.group1.BE.domain.entities.*;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
 import finalproject.group1.BE.domain.enums.ThumbnailFlag;
-import finalproject.group1.BE.domain.repository.CategoryRepository;
-import finalproject.group1.BE.domain.repository.ImageRepository;
-import finalproject.group1.BE.domain.repository.ProductRepository;
+import finalproject.group1.BE.domain.repository.*;
 import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
@@ -44,6 +40,9 @@ public class ProductService {
     private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
     private final GoogleDriveCommons googleDriveCommons;
+    private final FavoriteProductRepository favoriteProductRepository;
+    private final UserRepository userRepository;
+    private final EmailCommons emailCommons;
 
     @Value("${drive.upload.product}")
     private String driveProductDirectory;
@@ -106,19 +105,30 @@ public class ProductService {
         return productDetailsDTO;
     }
 
-
     public void update(int id, ProductRequest updateRequest) {
         long start = System.currentTimeMillis();
         Product product = productRepository.findById(id).orElseThrow(() -> {
             throw new NotFoundException("Product Not Found");
         });
+        Product updatedProduct = save(updateRequest, product);
+
+        //send email to users that flag this product as favorite
+        List<FavoriteProduct> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
+        String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
+            User user = userRepository.findById(favoriteProduct.getId().getUserId())
+                    .orElseThrow(() -> new NotFoundException("user not found"));
+            return user.getEmail();
+        }).toArray(String[]::new);
+
+        String content = String.format(Constants.FAVORITE_PRODUCT_UPDATE_CONTENT,updatedProduct.getSku());
+        emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT,content);
         save(updateRequest, product);
         long end = System.currentTimeMillis();
         System.out.println("update product : " + (end - start));
     }
 
     @Transactional
-    public void save(ProductRequest request, Product product) {
+    public Product save(ProductRequest request, Product product) {
         Product existProduct = productRepository.findBySku(request.getSku()).orElse(null);
         if (existProduct != null && existProduct.getId() != product.getId()) {
 
@@ -168,7 +178,7 @@ public class ProductService {
 
             Image image = new Image();
             image.setName(multipartFile.getOriginalFilename());
-            image.setPath(googleDriveCommons.uploadFile(multipartFile,driveProductDirectory));
+            image.setPath(googleDriveCommons.uploadFile(multipartFile, driveProductDirectory));
             image.setThumbnailFlag(ThumbnailFlag.NO);
 
             productImg.setProduct(finalProduct);
@@ -177,11 +187,12 @@ public class ProductService {
         }).collect(Collectors.toList()));
 
         // save changes to db
-        productRepository.save(product);
+        return productRepository.save(product);
     }
 
     /**
      * set product delete flag to 1 (DeleteFlag.DELETED)
+     *
      * @param id - product id
      */
     @Transactional
@@ -203,7 +214,21 @@ public class ProductService {
             product.getProductImgs().clear();
 
             //save changes to db
-            productRepository.save(product);
+            Product deletedProduct = productRepository.save(product);
+
+            //delete data in favorite product table
+            List<FavoriteProduct> favoriteProducts = favoriteProductRepository.
+                    findByIdProductId(deletedProduct.getId());
+            String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
+                User user = userRepository.findById(favoriteProduct.getId().getUserId())
+                        .orElseThrow(() -> new NotFoundException("user not found"));
+                return user.getEmail();
+            }).toArray(String[]::new);
+
+            favoriteProductRepository.deleteAll(favoriteProducts);
+            //send mail to user
+            String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT,deletedProduct.getOldSku());
+            emailCommons.sendSimpleMessage(userEmails,Constants.FAVORITE_PRODUCT_DElETE_SUBJECT,content);
         }
     }
 }
