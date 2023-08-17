@@ -8,7 +8,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +21,12 @@ public class CustomExceptionHandler {
     @ExceptionHandler(ExistException.class)
     public ResponseEntity ExistExceptionHandler(ExistException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","Already Exist", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidCsvException.class)
+    public ResponseEntity CsvExceptionHandler(InvalidCsvException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","Invalid Csv", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

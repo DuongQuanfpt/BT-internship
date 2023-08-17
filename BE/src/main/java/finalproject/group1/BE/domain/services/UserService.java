@@ -2,6 +2,7 @@ package finalproject.group1.BE.domain.services;
 
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.EmailCommons;
+import finalproject.group1.BE.commons.ValidateCommons;
 import finalproject.group1.BE.domain.entities.ChangedPasswordToken;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
@@ -13,12 +14,15 @@ import finalproject.group1.BE.web.dto.request.user.*;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
-import finalproject.group1.BE.web.exception.ExistException;
+
+import finalproject.group1.BE.web.exception.*;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
-import finalproject.group1.BE.web.exception.NotFoundException;
-import finalproject.group1.BE.web.exception.UserLockException;
 import finalproject.group1.BE.web.security.JwtHelper;
 import lombok.AllArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.data.domain.Pageable;
@@ -30,14 +34,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -324,5 +332,82 @@ public class UserService {
         String[] toEmails = {loginUser.getOldLoginId()};
         String emailContent = String.format(Constants.DELETE_USER_EMAIL_CONTENT, loginUser.getUserName());
         emailCommons.sendSimpleMessage(toEmails, Constants.DELETE_USER_EMAIL_SUBJECT, emailContent);
+    }
+
+    /**
+     * save all user in csv file to db
+     * @param csvFile
+     */
+    @Transactional
+    public void importUsers(MultipartFile csvFile) {
+        try {
+            List<User> userList = csvUsers(csvFile.getInputStream());
+            userRepository.saveAll(userList);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * get list of user from csv file
+     * @param is - csv file content
+     * @return list of user
+     */
+    public List<User> csvUsers(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(new BOMInputStream(is), "UTF-8"));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.withFirstRecordAsHeader().withTrim())) {
+
+            List<User> userList = new ArrayList<User>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                User user = getUserFromCSVRecord(csvRecord);
+                userList.add(user);
+            }
+
+            return userList;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+        }
+    }
+
+    private User getUserFromCSVRecord(CSVRecord record){
+
+        String email = record.get("email");
+        String password = record.get("password");
+        String userName = record.get("username");
+        String dob =record.get("DoB");
+        Role role;
+        try {
+            role = Role.valueOf(record.get("role").toUpperCase());
+        } catch (java.lang.IllegalArgumentException exception){
+            throw new NotFoundException("role "+record.get("role")+" not found");
+        }
+
+        if(!ValidateCommons.isUserEmailValid(email) || !ValidateCommons.isUserPasswordValid(password) ||
+            !ValidateCommons.isValidDate(dob) || !ValidateCommons.isUserNameValid(userName)){
+            throw new InvalidCsvException("invalid data");
+        }
+
+        Optional<User> existUser = userRepository.findByEmail(email);
+        if (existUser.isPresent()) {
+            if (existUser.get().getStatus() == UserStatus.LOCKED) {
+                throw new ExistException("account is locked");
+            }
+            throw new ExistException("account already exist");
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setUserName(userName);
+        user.setBirthDay(LocalDate.parse(dob));
+        user.setRole(role);
+        user.setStatus(UserStatus.NORMAL);
+        user.setDeleteFlag(DeleteFlag.NORMAL);
+
+        return user;
     }
 }

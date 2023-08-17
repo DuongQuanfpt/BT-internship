@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public final class Constants {
     public static final String VALID_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String VALID_EMAIL_PATERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
     public static final String VALID_IMAGE_FILE_EXTENSION = ".jpg";
+    public static final String VALID_IMPORT_FILE_EXTENSION = ".csv";
     public static final String DISPLAY_ID_FORMAT = "B%04d";
     public static final String ORDER_EMAIL_SUBJECT = "Order placed";
     public static final String ORDER_EMAIL_CONTENT = "Order %s has been placed";
