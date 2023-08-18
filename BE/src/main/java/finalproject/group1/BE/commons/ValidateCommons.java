@@ -12,7 +12,6 @@ public final class ValidateCommons {
     }
 
     public static boolean isValidDate (String date){
-        System.out.println("validating date:");
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.VALID_DATE_FORMAT);
             LocalDate startDate = LocalDate.parse(date, formatter);
