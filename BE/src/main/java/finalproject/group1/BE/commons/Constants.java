@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 public final class Constants {
     public static final String VALID_DATE_FORMAT = "yyyy-MM-dd";
     public static final String VALID_EMAIL_PATERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
+    public static final String VALID_SKU_PATERN = "^[A-Z][0-9-]{0,51}";
+    public static final String VALID_MIMETYPE = "image/jpeg";
     public static final String VALID_IMAGE_FILE_EXTENSION = ".jpg";
     public static final String VALID_IMPORT_FILE_EXTENSION = ".csv";
     public static final String DISPLAY_ID_FORMAT = "B%04d";

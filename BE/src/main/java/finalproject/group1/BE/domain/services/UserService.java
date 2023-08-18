@@ -40,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -94,7 +95,8 @@ public class UserService {
                 new UsernamePasswordAuthenticationToken(loginRequest.getLoginId(), loginRequest.getPassword()));
 
         User user = (User) authentication.getPrincipal();
-        user = userRepository.findByEmail(user.getEmail()).get();
+        user = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new NotFoundException("user not found"));
 
         String token = jwtHelper.createToken(user);
         //save token to redis server
@@ -221,7 +223,7 @@ public class UserService {
         token.setOwner(user);
         token.setToken(RandomString.make(20));
         token.setOwner(user);
-        token.setExpireDate(LocalDateTime.now().now().plus(Duration.ofMinutes(30)));
+        token.setExpireDate(LocalDateTime.now().plus(Duration.ofMinutes(30)));
 
         user.setChangedPasswordTokens(token);
         //save to DB
@@ -257,7 +259,7 @@ public class UserService {
         user.setChangedPasswordTokens(null);
 
         ///save changes to DB
-        User savedUser = userRepository.save(user);
+        userRepository.save(user);
         //sent new password to user email
         String[] toEmails = {user.getEmail()};
         String emailContent = String.format(Constants.RESET_PASSWORD_EMAIL_CONTENT, newPassword);
@@ -336,7 +338,8 @@ public class UserService {
 
     /**
      * save all user in csv file to db
-     * @param csvFile
+     *
+     * @param csvFile - the csv file
      */
     @Transactional
     public void importUsers(MultipartFile csvFile) {
@@ -350,15 +353,16 @@ public class UserService {
 
     /**
      * get list of user from csv file
+     *
      * @param is - csv file content
      * @return list of user
      */
     public List<User> csvUsers(InputStream is) {
-        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(new BOMInputStream(is), "UTF-8"));
+
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(new BOMInputStream(is), StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(fileReader,
                      CSVFormat.DEFAULT.withFirstRecordAsHeader().withTrim())) {
-
-            List<User> userList = new ArrayList<User>();
+            List<User> userList = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
             for (CSVRecord csvRecord : csvRecords) {
@@ -373,22 +377,31 @@ public class UserService {
         }
     }
 
-    private User getUserFromCSVRecord(CSVRecord record){
+    private User getUserFromCSVRecord(CSVRecord record) {
 
-        String email = record.get("email");
-        String password = record.get("password");
-        String userName = record.get("username");
-        String dob =record.get("DoB");
+        String email;
+        String password;
+        String userName;
+        String dob;
+        try {
+            email = record.get("email");
+            password = record.get("password");
+            userName = record.get("username");
+            dob = record.get("DoB");
+        } catch (java.lang.IllegalArgumentException exception) {
+            throw new IllegalArgumentException("invalid csv file for user import");
+        }
+
         Role role;
         try {
             role = Role.valueOf(record.get("role").toUpperCase());
-        } catch (java.lang.IllegalArgumentException exception){
-            throw new NotFoundException("role "+record.get("role")+" not found");
+        } catch (java.lang.IllegalArgumentException exception) {
+            throw new NotFoundException("role " + record.get("role") + " not found");
         }
 
-        if(!ValidateCommons.isUserEmailValid(email) || !ValidateCommons.isUserPasswordValid(password) ||
-            !ValidateCommons.isValidDate(dob) || !ValidateCommons.isUserNameValid(userName)){
-            throw new InvalidCsvException("invalid data");
+        if (!isUserEmailValid(email) || !isUserPasswordValid(password) ||
+                !ValidateCommons.isValidDate(dob) || !isUserNameValid(userName)) {
+            throw new IllegalArgumentException("invalid data");
         }
 
         Optional<User> existUser = userRepository.findByEmail(email);
@@ -410,4 +423,24 @@ public class UserService {
 
         return user;
     }
+
+    private boolean isUserEmailValid(String email) {
+        System.out.println("validating email :");
+        if (!ValidateCommons.isValidEmail(email)) {
+            return false;
+        }
+        return email.length() <= 255;
+    }
+
+    private boolean isUserPasswordValid(String password) {
+        System.out.println("validating password :");
+        return ValidateCommons.hasUpperCaseAndNumber(password) &&
+                password.length() >= 8 && password.length() <= 32;
+    }
+
+    private boolean isUserNameValid(String userName) {
+        System.out.println("validating username :");
+        return userName.length() >= 8 && userName.length() <= 255;
+    }
+
 }

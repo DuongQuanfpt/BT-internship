@@ -2,7 +2,7 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
 import finalproject.group1.BE.web.dto.request.user.ChangePasswordRequest;
-import finalproject.group1.BE.web.dto.request.user.UserImportRequest;
+import finalproject.group1.BE.web.dto.request.ImportRequest;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
@@ -18,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -71,7 +70,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/import")
-    public ResponseEntity importUser(@ModelAttribute @Valid UserImportRequest request,
+    public ResponseEntity importUser(@ModelAttribute @Valid ImportRequest request,
                                      BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);

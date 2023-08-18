@@ -1,4 +1,4 @@
-package finalproject.group1.BE.web.dto.request.user;
+package finalproject.group1.BE.web.dto.request;
 
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.web.annotation.ValidFileExtension;
@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserImportRequest {
+public class ImportRequest {
     @NotNull
     @ValidFileExtension(extension = Constants.VALID_IMPORT_FILE_EXTENSION
             ,message = "Not a csv file")
