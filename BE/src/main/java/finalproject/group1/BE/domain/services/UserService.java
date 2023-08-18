@@ -361,7 +361,11 @@ public class UserService {
 
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(new BOMInputStream(is), StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(fileReader,
-                     CSVFormat.DEFAULT.withFirstRecordAsHeader().withTrim())) {
+                     CSVFormat.DEFAULT.builder()
+                             .setHeader("email", "username", "password", "DoB", "role")
+                             .setSkipHeaderRecord(true)
+                             .setIgnoreHeaderCase(true)
+                             .setTrim(true).build())) {
             List<User> userList = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
@@ -378,11 +382,11 @@ public class UserService {
     }
 
     private User getUserFromCSVRecord(CSVRecord record) {
-
         String email;
         String password;
         String userName;
         String dob;
+        //get data from csv file
         try {
             email = record.get("email");
             password = record.get("password");
@@ -398,19 +402,8 @@ public class UserService {
         } catch (java.lang.IllegalArgumentException exception) {
             throw new NotFoundException("role " + record.get("role") + " not found");
         }
-
-        if (!isUserEmailValid(email) || !isUserPasswordValid(password) ||
-                !ValidateCommons.isValidDate(dob) || !isUserNameValid(userName)) {
-            throw new IllegalArgumentException("invalid data");
-        }
-
-        Optional<User> existUser = userRepository.findByEmail(email);
-        if (existUser.isPresent()) {
-            if (existUser.get().getStatus() == UserStatus.LOCKED) {
-                throw new ExistException("account is locked");
-            }
-            throw new ExistException("account already exist");
-        }
+        //validate data
+        validateUser(email,password,userName,dob);
 
         User user = new User();
         user.setEmail(email);
@@ -424,23 +417,31 @@ public class UserService {
         return user;
     }
 
-    private boolean isUserEmailValid(String email) {
-        System.out.println("validating email :");
-        if (!ValidateCommons.isValidEmail(email)) {
-            return false;
+    private void validateUser(String email, String password, String userName
+            , String dob) {
+        if (!ValidateCommons.isValidEmail(email) || email.length() > 255) {
+            throw new IllegalArgumentException("Record invalid email : " + email);
         }
-        return email.length() <= 255;
-    }
 
-    private boolean isUserPasswordValid(String password) {
-        System.out.println("validating password :");
-        return ValidateCommons.hasUpperCaseAndNumber(password) &&
-                password.length() >= 8 && password.length() <= 32;
-    }
+        if(!ValidateCommons.hasUpperCaseAndNumber(password) ||
+                password.length() < 8 || password.length() > 32){
+            throw new IllegalArgumentException("invalid password");
+        }
 
-    private boolean isUserNameValid(String userName) {
-        System.out.println("validating username :");
-        return userName.length() >= 8 && userName.length() <= 255;
-    }
+        if(userName.length() < 8 || userName.length() > 255){
+            throw new IllegalArgumentException("invalid name : " + userName);
+        }
 
+        if (!ValidateCommons.isValidDate(dob)){
+            throw new IllegalArgumentException("invalid date : " + dob);
+        }
+
+        Optional<User> existUser = userRepository.findByEmail(email);
+        if (existUser.isPresent()) {
+            if (existUser.get().getStatus() == UserStatus.LOCKED) {
+                throw new ExistException("account is locked");
+            }
+            throw new ExistException("account already exist");
+        }
+    }
 }
