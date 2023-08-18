@@ -1,8 +1,8 @@
 package finalproject.group1.BE.domain.services;
 
+import com.google.api.services.drive.model.File;
 import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.commons.EmailCommons;
-import finalproject.group1.BE.commons.FileCommons;
 import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.*;
 import finalproject.group1.BE.domain.enums.DeleteFlag;
@@ -17,18 +17,32 @@ import finalproject.group1.BE.web.dto.response.product.ProductImageResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductResponse;
 import finalproject.group1.BE.web.exception.ExistException;
+import finalproject.group1.BE.web.exception.IllegalArgumentException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,9 +99,8 @@ public class ProductService {
 
 
     public ProductDetailResponse getProductDetails(String sku) {
-        Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).orElseThrow(() -> {
-            throw new NotFoundException("Product not found with SKU: " + sku);
-        }));
+        Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).
+                orElseThrow(() -> new NotFoundException("Product not found with SKU: " + sku)));
 
         List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
         ProductImageResponse productImageResponse = new ProductImageResponse();
@@ -107,9 +120,8 @@ public class ProductService {
 
     public void update(int id, ProductRequest updateRequest) {
         long start = System.currentTimeMillis();
-        Product product = productRepository.findById(id).orElseThrow(() -> {
-            throw new NotFoundException("Product Not Found");
-        });
+        Product product = productRepository.findById(id).orElseThrow(() ->
+                new NotFoundException("Product Not Found"));
         Product updatedProduct = save(updateRequest, product);
 
         long end = System.currentTimeMillis();
@@ -122,11 +134,11 @@ public class ProductService {
             return user.getEmail();
         }).toArray(String[]::new);
 
-        if(userEmails.length == 0) {
+        if (userEmails.length == 0) {
             return;
         }
-        String content = String.format(Constants.FAVORITE_PRODUCT_UPDATE_CONTENT,updatedProduct.getSku());
-        emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT,content);
+        String content = String.format(Constants.FAVORITE_PRODUCT_UPDATE_CONTENT, updatedProduct.getSku());
+        emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_UPDATE_SUBJECT, content);
     }
 
     @Transactional
@@ -155,25 +167,22 @@ public class ProductService {
         }
 
         //add thumbnail image to product
-        Thread addThumbnail = new Thread(){
-            public void run(){
-                ProductImg thumbnailImg = new ProductImg();
+        Thread addThumbnail = new Thread(() -> {
+            ProductImg thumbnailImg = new ProductImg();
 
-                Image image = new Image();
-                image.setName(request.getThumbnailImage().getOriginalFilename());
-                image.setPath(googleDriveCommons.uploadFile(request.getThumbnailImage(), driveProductDirectory));
-                image.setThumbnailFlag(ThumbnailFlag.YES);
+            Image image = new Image();
+            image.setName(request.getThumbnailImage().getOriginalFilename());
+            image.setPath(googleDriveCommons.uploadFile(request.getThumbnailImage(), driveProductDirectory));
+            image.setThumbnailFlag(ThumbnailFlag.YES);
 
-                thumbnailImg.setProduct(product);
-                thumbnailImg.setImage(image);
+            thumbnailImg.setProduct(product);
+            thumbnailImg.setImage(image);
 
-                productImgs.add(thumbnailImg);
-            }
-        };
+            productImgs.add(thumbnailImg);
+        });
         addThumbnail.start();
 
         //add detail images to product
-        Product finalProduct = product;
         productImgs.addAll(request.getDetailImage().parallelStream().map(multipartFile -> {
             ProductImg productImg = new ProductImg();
 
@@ -182,10 +191,10 @@ public class ProductService {
             image.setPath(googleDriveCommons.uploadFile(multipartFile, driveProductDirectory));
             image.setThumbnailFlag(ThumbnailFlag.NO);
 
-            productImg.setProduct(finalProduct);
+            productImg.setProduct(product);
             productImg.setImage(image);
             return productImg;
-        }).collect(Collectors.toList()));
+        }).toList());
 
         try {
             addThumbnail.join();
@@ -214,10 +223,9 @@ public class ProductService {
 
             //delete product images
             List<ProductImg> productImgs = product.getProductImgs();
-            productImgs.stream().forEach(productImg -> {
-                //delete images in server
-                googleDriveCommons.deleteFileOrFolder(productImg.getImage().getPath());
-            });
+            //delete product in server
+            productImgs.stream().forEach(productImg -> new Thread(() -> googleDriveCommons.
+                    deleteFileOrFolder(productImg.getImage().getPath())).start());
             product.getProductImgs().clear();
 
             //save changes to db
@@ -234,12 +242,154 @@ public class ProductService {
 
             favoriteProductRepository.deleteAll(favoriteProducts);
             //send mail to user
-            if(userEmails.length == 0) {
+            if (userEmails.length == 0) {
                 return;
             }
 
-            String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT,deletedProduct.getOldSku());
-            emailCommons.sendSimpleMessage(userEmails,Constants.FAVORITE_PRODUCT_DElETE_SUBJECT,content);
+            String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT, deletedProduct.getOldSku());
+            emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_DElETE_SUBJECT, content);
         }
+    }
+
+    @Transactional
+    public void importProducts(MultipartFile csvFile) {
+        try {
+            List<Product> productList = csvProducts(csvFile.getInputStream());
+            productRepository.saveAll(productList);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * get list of user from csv file
+     *
+     * @param is - csv file content
+     * @return list of user
+     */
+    public List<Product> csvProducts(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(new BOMInputStream(is), StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.builder()
+                             .setHeader("sku", "name", "price", "detail_info", "category_id", "thumbnail_img", "detail_img")
+                             .setSkipHeaderRecord(true)
+                             .setIgnoreHeaderCase(true)
+                             .setTrim(true).build())) {
+
+            List<Product> productList = new ArrayList<>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                Product product = getProductFromCSVRecord(csvRecord);
+                productList.add(product);
+            }
+
+            return productList;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+        }
+    }
+    private Product getProductFromCSVRecord(CSVRecord csvRecord) {
+        String sku;
+        String name;
+        BigDecimal price;
+        String detailInfo;
+        Category category;
+        File thumbnailFile;
+        List<File> detailFiles;
+
+        //get data from csv file
+        try {
+            sku = csvRecord.get("sku");
+            name = csvRecord.get("name");
+            price = BigDecimal.valueOf(Double.parseDouble(csvRecord.get("price")));
+            detailInfo = csvRecord.get("detail_info");
+            category = categoryRepository.findById(Integer.parseInt(csvRecord.get("category_id")))
+                    .orElseThrow(() -> new NotFoundException("Category not found"));
+            thumbnailFile = googleDriveCommons.getFileByUrl(csvRecord.get("thumbnail_img"));
+            detailFiles = Arrays.stream(csvRecord.get("detail_img").split(","))
+                    .map(url -> googleDriveCommons.getFileByUrl(url))
+                    .collect(Collectors.toList());
+        } catch (java.lang.IllegalArgumentException exception) {
+            throw new IllegalArgumentException("invalid csv file for product import");
+        }
+        //validate data in csv
+        validateProduct(sku, name, price, detailInfo,thumbnailFile,detailFiles);
+
+        //Create new product
+        Product product = new Product();
+        product.setSku(sku);
+        product.setName(name);
+        product.setPrice(price.floatValue());
+        product.setDetailInfo(detailInfo);
+        product.setCategory(category);
+        product.setDeleteFlag(DeleteFlag.NORMAL);
+
+        List<ProductImg> productImgs = new ArrayList<>();
+        //create thumbnail image
+        ProductImg thumbnailProductImg = new ProductImg();
+        Image thumbnailImage = new Image();
+        thumbnailImage.setName(thumbnailFile.getName());
+        thumbnailImage.setPath(thumbnailFile.getId());
+        thumbnailImage.setThumbnailFlag(ThumbnailFlag.YES);
+        thumbnailProductImg.setProduct(product);
+        thumbnailProductImg.setImage(thumbnailImage);
+        productImgs.add(thumbnailProductImg);
+
+        //create detail image
+        productImgs.addAll(detailFiles.stream().map(file -> {
+            ProductImg detailProductImg = new ProductImg();
+            Image detailImage = new Image();
+            detailImage.setName(file.getName());
+            detailImage.setPath(file.getId());
+            detailImage.setThumbnailFlag(ThumbnailFlag.NO);
+            detailProductImg.setProduct(product);
+            detailProductImg.setImage(detailImage);
+
+            return detailProductImg;
+        }).toList());
+        product.setProductImgs(productImgs);
+        return product;
+    }
+
+    private void validateProduct(String sku, String name, BigDecimal price
+            , String detailInfo, File thumbnailFile, List<File> detailFiles) {
+        if (!Pattern.compile(Constants.VALID_SKU_PATERN).matcher(sku).matches()) {
+            throw new IllegalArgumentException(sku + " not a valid sku");
+        }else if(productRepository.findBySku(sku).isPresent()){
+            throw new IllegalArgumentException("product with sku "+ sku + " already exist");
+        }
+
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException(" must have a product name");
+        }
+
+        if(detailInfo.length() >1000){
+            throw new IllegalArgumentException(" detail length exceed 1000 character");
+        }
+
+        int intergerLength = price.precision() - price.scale();
+        int fractionalLength = price.scale();
+        if (intergerLength > 15) {
+            throw new IllegalArgumentException(" price integer length cannot exceed 15 : " + price);
+        }
+        if (fractionalLength > 3) {
+            throw new IllegalArgumentException(" price fractional length cannot exceed 3 : " + price);
+        }
+
+        if(!thumbnailFile.getMimeType().equals(Constants.VALID_MIMETYPE)){
+            throw new IllegalArgumentException("thumbnail file is not of image type");
+        }else if( imageRepository.findByPath(thumbnailFile.getId()).isPresent()){
+            throw new IllegalArgumentException("image already have a product");
+        }
+
+        detailFiles.forEach(file -> {
+            if(!file.getMimeType().equals(Constants.VALID_MIMETYPE)){
+                throw new IllegalArgumentException("detail file is not of image type");
+            }else if( imageRepository.findByPath(file.getId()).isPresent()){
+                throw new IllegalArgumentException("image already have a product");
+            }
+        });
     }
 }

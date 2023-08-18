@@ -6,13 +6,12 @@ import finalproject.group1.BE.domain.services.FavoriteProductService;
 import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
+import finalproject.group1.BE.web.dto.request.ImportRequest;
 import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
-import finalproject.group1.BE.web.dto.response.product.ProductResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,9 +21,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -50,6 +46,18 @@ public class ProductController {
         }
         ProductListResponse productListResponse = productService.getProductList(productListRequest,pageable);
         return ResponseEntity.ok().body(ResponseDTO.success(productListResponse));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/import")
+    public ResponseEntity importProduct(@ModelAttribute @Valid ImportRequest request,
+                                     BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult);
+        }
+        productService.importProducts(request.getCsvFile());
+        return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 
     @GetMapping("/{sku}")

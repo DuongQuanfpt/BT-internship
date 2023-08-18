@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image,Integer> {
@@ -25,4 +26,6 @@ public interface ImageRepository extends JpaRepository<Image,Integer> {
             "where i.thumbnailFlag = finalproject.group1.BE.domain.enums.ThumbnailFlag.NO and " +
             "      i.productImg.product.id = :productId")
     List<ImageData> findDetailImages(@Param("productId") int productId);
+
+    Optional<Image> findByPath(String path);
 }

@@ -11,25 +11,6 @@ public final class ValidateCommons {
        return  Pattern.compile(Constants.VALID_EMAIL_PATERN).matcher(email).matches();
     }
 
-    public static boolean isUserEmailValid(String email){
-        System.out.println("validating email :");
-        if(!ValidateCommons.isValidEmail(email)){
-            return false;
-        }
-        return email.length() <= 255;
-    }
-
-    public static boolean isUserPasswordValid(String password){
-        System.out.println("validating password :");
-        return ValidateCommons.hasUpperCaseAndNumber(password) &&
-                password.length() >= 8 && password.length() <= 32;
-    }
-
-    public static boolean isUserNameValid(String userName){
-        System.out.println("validating username :");
-        return userName.length() >= 8 && userName.length() <= 255;
-    }
-
     public static boolean isValidDate (String date){
         System.out.println("validating date:");
         try {

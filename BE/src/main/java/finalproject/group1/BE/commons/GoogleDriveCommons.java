@@ -8,9 +8,9 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import finalproject.group1.BE.web.config.GoogleDriveConfig;
+import finalproject.group1.BE.web.exception.IllegalArgumentException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class GoogleDriveCommons {
         FileList result = googleDriveConfig.getDrive().files().list()
                 .setQ(query)
                 .setPageSize(10)
-                .setFields("nextPageToken, files(id, name)")
+                .setFields("nextPageToken, files(id, name,webContentLink)")
                 .execute();
         return result.getFiles();
     }
@@ -94,8 +96,7 @@ public class GoogleDriveCommons {
 
     private String searchFolderId(String parentId, String folderName, Drive service) throws Exception {
         String folderId = null;
-        String pageToken = null;
-        FileList result = null;
+        FileList result;
 
         String query = " mimeType = 'application/vnd.google-apps.folder'" +
                 " and 'me' in owners" +
@@ -128,9 +129,7 @@ public class GoogleDriveCommons {
                 throw new RuntimeException(e);
             }
 
-        } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -147,11 +146,49 @@ public class GoogleDriveCommons {
                     throw new RuntimeException(e);
                 }
                 throw new NotFoundException("File not found on drive");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (GeneralSecurityException e) {
+            } catch (IOException | GeneralSecurityException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    //get file by Id
+    public File getFileById(String fileId) {
+        try {
+            return googleDriveConfig.getDrive().files().get(fileId).execute();
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
+                throw new RuntimeException(e);
+            }
+           return null;
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    // Get file from url
+    public File getFileByUrl(String url) {
+        Pattern pattern = Pattern.compile("[-\\w]{25,}");
+        Matcher matcher = pattern.matcher(url);
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("invalid image url");
+        }
+        String fileId = matcher.group();
+        File file = getFileById(fileId);
+        if (file == null) {
+            throw new NotFoundException("No image found at url : " + url);
+        }
+        return file;
+    }
+
+    public String getFileIdFromUrl(String url){
+        Pattern pattern = Pattern.compile("[-\\w]{25,}");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find())
+        {
+            return matcher.group();
+        }
+        return null;
     }
 }
