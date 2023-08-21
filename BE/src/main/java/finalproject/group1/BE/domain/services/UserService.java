@@ -11,6 +11,7 @@ import finalproject.group1.BE.domain.enums.UserStatus;
 import finalproject.group1.BE.domain.repository.ChangedPasswordTokenRepository;
 import finalproject.group1.BE.domain.repository.UserRepository;
 import finalproject.group1.BE.web.dto.request.user.*;
+import finalproject.group1.BE.web.dto.response.error.ErrorResponse;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
@@ -366,14 +367,21 @@ public class UserService {
                              .setSkipHeaderRecord(true)
                              .setIgnoreHeaderCase(true)
                              .setTrim(true).build())) {
+            ErrorResponse errorResponse = new ErrorResponse("400",
+                    "Csv Validation", "Invalid data in csv file");
             List<User> userList = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
             for (CSVRecord csvRecord : csvRecords) {
-                User user = getUserFromCSVRecord(csvRecord);
-                userList.add(user);
+                User user = getUserFromCSVRecord(csvRecord, errorResponse);
+                if (user != null){
+                    userList.add(user);
+                }
             }
 
+            if (!errorResponse.getDetails().isEmpty()) {
+                throw new CsvValidateException(errorResponse);
+            }
             return userList;
         } catch (IOException e) {
             e.printStackTrace();
@@ -381,30 +389,45 @@ public class UserService {
         }
     }
 
-    private User getUserFromCSVRecord(CSVRecord record) {
+    private User getUserFromCSVRecord(CSVRecord record, ErrorResponse errorResponse) {
+        ErrorResponse response = new ErrorResponse("400"
+                , "Csv Validation", "At record " + record.getRecordNumber());
         String email;
         String password;
         String userName;
         String dob;
+        String stringRole;
         //get data from csv file
         try {
             email = record.get("email");
             password = record.get("password");
             userName = record.get("username");
             dob = record.get("DoB");
+            stringRole = record.get("role").toUpperCase();
+            //skip empty line
+            if (email.isBlank() && password.isBlank() && userName.isBlank()
+                    && dob.isBlank() && stringRole.isBlank()) {
+                return null;
+            }
         } catch (java.lang.IllegalArgumentException exception) {
             throw new IllegalArgumentException("invalid csv file for user import");
         }
 
-        Role role;
+        Role role = null;
         try {
-            role = Role.valueOf(record.get("role").toUpperCase());
+            role = Role.valueOf(stringRole);
         } catch (java.lang.IllegalArgumentException exception) {
-            throw new NotFoundException("role " + record.get("role") + " not found");
+            response.getDetails().add(new ErrorResponse("400"
+                    , "NotFound", "role " + record.get("role") + " not found"));
+//            throw new NotFoundException("role " + record.get("role") + " not found");
         }
         //validate data
-        validateUser(email,password,userName,dob);
+        validateUser(email, password, userName, dob, response);
 
+        if (!response.getDetails().isEmpty()) {
+            errorResponse.getDetails().add(response);
+            return null;
+        }
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
@@ -418,30 +441,44 @@ public class UserService {
     }
 
     private void validateUser(String email, String password, String userName
-            , String dob) {
+            , String dob, ErrorResponse response) {
         if (!ValidateCommons.isValidEmail(email) || email.length() > 255) {
-            throw new IllegalArgumentException("Record invalid email : " + email);
+            response.getDetails().add(new ErrorResponse("400",
+                    "IllegalArgument", "invalid email "));
+//            throw new IllegalArgumentException("Record invalid email : " + email);
         }
 
-        if(!ValidateCommons.hasUpperCaseAndNumber(password) ||
-                password.length() < 8 || password.length() > 32){
-            throw new IllegalArgumentException("invalid password");
+        if (!ValidateCommons.hasUpperCaseAndNumber(password) ||
+                password.length() < 8 || password.length() > 32) {
+            response.getDetails().add(new ErrorResponse("400",
+                    "IllegalArgument", "invalid password "));
+//            throw new IllegalArgumentException("invalid password");
         }
 
-        if(userName.length() < 8 || userName.length() > 255){
-            throw new IllegalArgumentException("invalid name : " + userName);
+        if (userName.length() < 8 || userName.length() > 255) {
+            response.getDetails().add(new ErrorResponse("400",
+                    "IllegalArgument", "invalid username "));
+//            throw new IllegalArgumentException("invalid name : " + userName);
         }
 
-        if (!ValidateCommons.isValidDate(dob)){
-            throw new IllegalArgumentException("invalid date : " + dob);
+        if (!ValidateCommons.isValidDate(dob)) {
+            response.getDetails().add(new ErrorResponse("400",
+                    "IllegalArgument", "invalid date :" + dob));
+//            throw new IllegalArgumentException("invalid date : " + dob);
         }
 
         Optional<User> existUser = userRepository.findByEmail(email);
         if (existUser.isPresent()) {
             if (existUser.get().getStatus() == UserStatus.LOCKED) {
-                throw new ExistException("account is locked");
+                response.getDetails().add(new ErrorResponse("400",
+                        "ExistException", "account is locked "));
+//                throw new ExistException("account is locked");
+            } else {
+                response.getDetails().add(new ErrorResponse("400",
+                        "ExistException", "account already exist"));
+//                throw new ExistException("account already exist");
             }
-            throw new ExistException("account already exist");
+
         }
     }
 }

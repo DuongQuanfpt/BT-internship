@@ -24,10 +24,9 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(InvalidCsvException.class)
-    public ResponseEntity CsvExceptionHandler(InvalidCsvException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("400","Invalid Csv", exception.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(CsvValidateException.class)
+    public ResponseEntity CsvExceptionHandler(CsvValidateException exception, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getErrorResponse());
     }
 
     @ExceptionHandler({DisabledException.class, LockedException.class})
