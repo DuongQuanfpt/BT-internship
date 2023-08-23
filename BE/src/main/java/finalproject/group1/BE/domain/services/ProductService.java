@@ -54,9 +54,10 @@ public class ProductService {
     private final ImageRepository imageRepository;
     private final ModelMapper modelMapper;
     private final GoogleDriveCommons googleDriveCommons;
-    private final FavoriteProductRepository favoriteProductRepository;
+    private final ProductFavoriteRepository favoriteProductRepository;
     private final UserRepository userRepository;
     private final EmailCommons emailCommons;
+    private final ProductViewService productViewService;
 
     @Value("${drive.upload.product}")
     private String driveProductDirectory;
@@ -98,7 +99,7 @@ public class ProductService {
     }
 
 
-    public ProductDetailResponse getProductDetails(String sku) {
+    public ProductDetailResponse getProductDetails(String sku, Integer loginUserId) {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).
                 orElseThrow(() -> new NotFoundException("Product not found with SKU: " + sku)));
 
@@ -115,6 +116,8 @@ public class ProductService {
         productDetailsDTO.setPrice(productDetail.get().getPrice());
         productDetailsDTO.setImages(productImageResponse);
 
+        productViewService.save(productDetail.get().getId(),loginUserId);
+
         return productDetailsDTO;
     }
 
@@ -127,7 +130,7 @@ public class ProductService {
         long end = System.currentTimeMillis();
         System.out.println("update product : " + (end - start));
         //send email to users that flag this product as favorite
-        List<FavoriteProduct> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
+        List<ProductFavorite> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
         String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
             User user = userRepository.findById(favoriteProduct.getId().getUserId())
                     .orElseThrow(() -> new NotFoundException("user not found"));
@@ -232,7 +235,7 @@ public class ProductService {
             Product deletedProduct = productRepository.save(product);
 
             //delete data in favorite product table
-            List<FavoriteProduct> favoriteProducts = favoriteProductRepository.
+            List<ProductFavorite> favoriteProducts = favoriteProductRepository.
                     findByIdProductId(deletedProduct.getId());
             String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
                 User user = userRepository.findById(favoriteProduct.getId().getUserId())

@@ -2,7 +2,7 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.entities.Product;
 import finalproject.group1.BE.domain.entities.User;
-import finalproject.group1.BE.domain.services.FavoriteProductService;
+import finalproject.group1.BE.domain.services.ProductFavoriteService;
 import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
     private final ProductService productService;
 
-    private final FavoriteProductService favoriteProductService;
+    private final ProductFavoriteService favoriteProductService;
 
     @PostMapping("/favorite/{productId}")
     public ResponseEntity addProductToFavorite(@PathVariable("productId") int productId
@@ -61,8 +61,14 @@ public class ProductController {
     }
 
     @GetMapping("/{sku}")
-    public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku) {
-        ProductDetailResponse response = productService.getProductDetails(sku);
+    public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku
+            ,Authentication authentication) {
+        Integer loginUserId = null;
+        if(authentication != null) {
+            User loginUser = (User)authentication.getPrincipal();
+            loginUserId = loginUser.getId();
+        }
+        ProductDetailResponse response = productService.getProductDetails(sku,loginUserId);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
     }
 
@@ -102,6 +108,15 @@ public class ProductController {
 
         productService.delete(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
+                .withHttpStatus(HttpStatus.OK).withMessage("OK"));
+    }
+
+    @DeleteMapping("/remove-favorite/{productId}")
+    public ResponseEntity removeProductToFavorite(@PathVariable("productId") int productId
+            , Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        favoriteProductService.delete(user.getId(),productId);
+        return ResponseEntity.ok(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
 }
