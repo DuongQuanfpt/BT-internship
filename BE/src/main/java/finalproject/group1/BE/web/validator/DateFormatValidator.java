@@ -13,6 +13,9 @@ public class DateFormatValidator implements ConstraintValidator<ValidDateFormat,
 
     @Override
     public boolean isValid(String date, ConstraintValidatorContext constraintValidatorContext) {
+        if (date == null || date.isBlank()) {
+            return true;
+        }
         return ValidateCommons.isValidDate(date);
     }
 }

@@ -34,6 +34,8 @@ public class CartService {
 
     private ImageRepository imageRepository;
 
+    private ProductToCartService toCartService;
+
     private ModelMapper modelMapper;
 
 
@@ -94,6 +96,8 @@ public class CartService {
         //calculate new total prices of product in cart
         savedCart.setTotalPrice(cartDetailsRepository.sumTotalPriceByCartId(cart.getId()));
         savedCart = cartRepository.save(savedCart);
+        //save added to cart
+        toCartService.save(product.getId(), request.getQuantity());
 
         //calculate quantity and create response
         int quantity = cartDetailsRepository.sumQuantityByCardId(savedCart.getId());
@@ -219,7 +223,7 @@ public class CartService {
      * if current user is login, get quantity for user cart,
      * if user not login, get quantity from temporary cart
      *
-     * @param request temporary cart token
+     * @param request        temporary cart token
      * @param authentication authentication object
      * @return quantity of products in cart, version after increase
      */
@@ -248,6 +252,7 @@ public class CartService {
     public CartUpdateAndDeleteResponse updateCart(CartUpdateRequest updateRequest, Authentication authentication) {
         User loginUser;
         Cart cart = null;
+
         if (authentication != null) {  //check if there are user login
             loginUser = (User) authentication.getPrincipal();
             cart = cartRepository.findByOwnerId(loginUser.getId()).orElse(null);
@@ -265,6 +270,7 @@ public class CartService {
                     if (cartDetail.getId() == updateRequest.getId()) {
                         // Update the quantity and calculate the new total price
                         cartDetail.setPrice(cartDetail.getProduct().getPrice());
+                        int currentQuantity = cartDetail.getQuantity();
                         int newQuantity = updateRequest.getQuantity();
                         float newTotalPrice = cartDetail.getPrice() * newQuantity;
 
@@ -274,6 +280,12 @@ public class CartService {
 
                         // Save the updated cart detail
                         cartDetailsRepository.save(cartDetail);
+                        // Save the addition of product to cart to db
+                        int amountChanges = newQuantity - currentQuantity;
+                        if (amountChanges > 0) {
+                            toCartService.save(cartDetail.getProduct().getId()
+                                    , amountChanges);
+                        }
                     }
                 }
 

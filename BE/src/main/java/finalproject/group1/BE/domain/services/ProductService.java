@@ -12,16 +12,14 @@ import finalproject.group1.BE.web.dto.data.image.ImageData;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.response.PageableDTO;
-import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
-import finalproject.group1.BE.web.dto.response.product.ProductImageResponse;
-import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
-import finalproject.group1.BE.web.dto.response.product.ProductResponse;
+import finalproject.group1.BE.web.dto.response.product.*;
 import finalproject.group1.BE.web.exception.ExistException;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import org.modelmapper.ModelMapper;
@@ -32,12 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,13 +47,18 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductViewRepository productViewRepository;
+    private final ProductToCartRepository toCartRepository;
+    private final ProductFavoriteHistoryRepository favoriteHistoryRepository;
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final ModelMapper modelMapper;
     private final GoogleDriveCommons googleDriveCommons;
-    private final FavoriteProductRepository favoriteProductRepository;
+    private final ProductFavoriteRepository favoriteProductRepository;
     private final UserRepository userRepository;
     private final EmailCommons emailCommons;
+    private final ProductViewService productViewService;
 
     @Value("${drive.upload.product}")
     private String driveProductDirectory;
@@ -98,7 +100,7 @@ public class ProductService {
     }
 
 
-    public ProductDetailResponse getProductDetails(String sku) {
+    public ProductDetailResponse getProductDetails(String sku, Integer loginUserId) {
         Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).
                 orElseThrow(() -> new NotFoundException("Product not found with SKU: " + sku)));
 
@@ -115,6 +117,8 @@ public class ProductService {
         productDetailsDTO.setPrice(productDetail.get().getPrice());
         productDetailsDTO.setImages(productImageResponse);
 
+        productViewService.save(productDetail.get().getId(), loginUserId);
+
         return productDetailsDTO;
     }
 
@@ -127,7 +131,7 @@ public class ProductService {
         long end = System.currentTimeMillis();
         System.out.println("update product : " + (end - start));
         //send email to users that flag this product as favorite
-        List<FavoriteProduct> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
+        List<ProductFavorite> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
         String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
             User user = userRepository.findById(favoriteProduct.getId().getUserId())
                     .orElseThrow(() -> new NotFoundException("user not found"));
@@ -232,7 +236,7 @@ public class ProductService {
             Product deletedProduct = productRepository.save(product);
 
             //delete data in favorite product table
-            List<FavoriteProduct> favoriteProducts = favoriteProductRepository.
+            List<ProductFavorite> favoriteProducts = favoriteProductRepository.
                     findByIdProductId(deletedProduct.getId());
             String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
                 User user = userRepository.findById(favoriteProduct.getId().getUserId())
@@ -290,6 +294,7 @@ public class ProductService {
             throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
         }
     }
+
     private Product getProductFromCSVRecord(CSVRecord csvRecord) {
         String sku;
         String name;
@@ -315,7 +320,7 @@ public class ProductService {
             throw new IllegalArgumentException("invalid csv file for product import");
         }
         //validate data in csv
-        validateProduct(sku, name, price, detailInfo,thumbnailFile,detailFiles);
+        validateProduct(sku, name, price, detailInfo, thumbnailFile, detailFiles);
 
         //Create new product
         Product product = new Product();
@@ -357,15 +362,15 @@ public class ProductService {
             , String detailInfo, File thumbnailFile, List<File> detailFiles) {
         if (!Pattern.compile(Constants.VALID_SKU_PATERN).matcher(sku).matches()) {
             throw new IllegalArgumentException(sku + " not a valid sku");
-        }else if(productRepository.findBySku(sku).isPresent()){
-            throw new IllegalArgumentException("product with sku "+ sku + " already exist");
+        } else if (productRepository.findBySku(sku).isPresent()) {
+            throw new IllegalArgumentException("product with sku " + sku + " already exist");
         }
 
         if (name.isEmpty()) {
             throw new IllegalArgumentException(" must have a product name");
         }
 
-        if(detailInfo.length() >1000){
+        if (detailInfo.length() > 1000) {
             throw new IllegalArgumentException(" detail length exceed 1000 character");
         }
 
@@ -378,18 +383,156 @@ public class ProductService {
             throw new IllegalArgumentException(" price fractional length cannot exceed 3 : " + price);
         }
 
-        if(!thumbnailFile.getMimeType().equals(Constants.VALID_MIMETYPE)){
+        if (!thumbnailFile.getMimeType().equals(Constants.VALID_MIMETYPE)) {
             throw new IllegalArgumentException("thumbnail file is not of image type");
-        }else if( imageRepository.findByPath(thumbnailFile.getId()).isPresent()){
+        } else if (imageRepository.findByPath(thumbnailFile.getId()).isPresent()) {
             throw new IllegalArgumentException("image already have a product");
         }
 
         detailFiles.forEach(file -> {
-            if(!file.getMimeType().equals(Constants.VALID_MIMETYPE)){
+            if (!file.getMimeType().equals(Constants.VALID_MIMETYPE)) {
                 throw new IllegalArgumentException("detail file is not of image type");
-            }else if( imageRepository.findByPath(file.getId()).isPresent()){
+            } else if (imageRepository.findByPath(file.getId()).isPresent()) {
                 throw new IllegalArgumentException("image already have a product");
             }
         });
+    }
+
+    /**
+     * get all product statistic
+     *
+     * @param pageable - paging
+     * @param date     - from date
+     * @return list of product statistic
+     */
+    public ProductStatisticResponse getStatistic(Pageable pageable, String date) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+        List<ProductStatisticDetailResponse> statisticDetailResponses;
+        statisticDetailResponses = productPage.getContent().stream().map(product -> {
+            ProductStatisticDetailResponse detailResponse;
+            if (date != null && !date.isBlank()) {
+                detailResponse = getStatisticDetail(product.getId(),
+                        product.getName(), product.getSku(), LocalDate.parse(date));
+            } else {
+                detailResponse = getStatisticDetail(product.getId(), product.getName(), product.getSku());
+            }
+
+            return detailResponse;
+        }).collect(Collectors.toList());
+
+        PageableDTO pageableDTO = new PageableDTO();
+        pageableDTO.setPageNumber(productPage.getNumber());
+        pageableDTO.setPageSize(productPage.getSize());
+        pageableDTO.setTotalPages(productPage.getTotalPages());
+
+        ProductStatisticResponse response = new ProductStatisticResponse();
+        response.setPageableDTO(pageableDTO);
+        response.setStatisticResponse(statisticDetailResponses);
+        return response;
+    }
+
+    /**
+     * get product statistic
+     *
+     * @param productId - product id
+     * @param name      - product name
+     * @param sku       - product sku
+     * @return product statistic
+     */
+    private ProductStatisticDetailResponse getStatisticDetail(int productId, String name, String sku) {
+        ProductStatisticDetailResponse detailResponse = new ProductStatisticDetailResponse();
+
+        long viewCount = productViewRepository.countByProductId(productId);
+        long orderCount = orderDetailRepository.countByProductId(productId);
+        Float orderViewPercentage = null;
+        if (viewCount != 0) {
+            orderViewPercentage = ((float) orderCount / viewCount) * 100;
+        }
+        detailResponse.setId(productId);
+        detailResponse.setSku(sku);
+        detailResponse.setProductName(name);
+        detailResponse.setViewCount(viewCount);
+        detailResponse.setFavoriteCount(favoriteHistoryRepository
+                .countByProductIdAndIsFavorite(productId, true));
+        detailResponse.setFavoriteRemovalCount(favoriteHistoryRepository
+                .countByProductIdAndIsFavorite(productId, false));
+        detailResponse.setAddedToCartCount(toCartRepository.countByProductId(productId));
+        detailResponse.setOrderCount(orderCount);
+        detailResponse.setOrderQuantity(orderDetailRepository.sumQuantityByProductId(productId));
+        detailResponse.setOrderViewPercentage(orderViewPercentage);
+
+        return detailResponse;
+    }
+
+    /**
+     * get product statistic
+     *
+     * @param date      - from date
+     * @param productId - product id
+     * @param name      - product name
+     * @param sku       - product sku
+     * @return product statistic
+     */
+    private ProductStatisticDetailResponse getStatisticDetail
+    (int productId, String name, String sku, LocalDate date) {
+        ProductStatisticDetailResponse detailResponse = new ProductStatisticDetailResponse();
+
+        long viewCount = productViewRepository.countByProductIdAndDateAfter(productId, date.atStartOfDay());
+        long orderCount = orderDetailRepository.countByProductIdAndOrderOrderDateAfter(productId, date);
+        Float orderViewPercentage = null;
+        if (viewCount != 0) {
+            orderViewPercentage = ((float) orderCount / viewCount) * 100;
+        }
+
+        detailResponse.setId(productId);
+        detailResponse.setSku(sku);
+        detailResponse.setProductName(name);
+        detailResponse.setViewCount(viewCount);
+        detailResponse.setFavoriteCount(favoriteHistoryRepository
+                .countByProductIdAndIsFavoriteAndDateAfter(productId, true, date.atStartOfDay()));
+        detailResponse.setFavoriteRemovalCount(favoriteHistoryRepository
+                .countByProductIdAndIsFavoriteAndDateAfter(productId, false, date.atStartOfDay()));
+        detailResponse.setAddedToCartCount(toCartRepository.countByProductIdAndDateAfter(productId, date.atStartOfDay()));
+        detailResponse.setOrderCount(orderCount);
+        detailResponse.setOrderQuantity(orderDetailRepository.sumQuantityByProductIdAndAfterDate(productId, date));
+        detailResponse.setOrderViewPercentage(orderViewPercentage);
+
+        return detailResponse;
+    }
+
+    /**
+     * export and download statistic data csv file
+     *
+     * @param writer        - HttpServletResponse writer
+     * @param statisticData - statistic data to download
+     */
+    public void statisticToCSV(PrintWriter writer, List<ProductStatisticDetailResponse> statisticData) {
+        try (
+                CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
+                        .withHeader("ID", "Sku", "Product name", "View", "Favorite", "Favorite removal"
+                                , "Added to cart", "Order", "Order quantity", "Order view percentage"));
+        ) {
+            for (ProductStatisticDetailResponse detail : statisticData) {
+                List<String> data = Arrays.asList(
+                        String.valueOf(detail.getId()),
+                        detail.getSku(),
+                        detail.getProductName(),
+                        String.valueOf(detail.getViewCount()),
+                        String.valueOf(detail.getFavoriteCount()),
+                        String.valueOf(detail.getFavoriteRemovalCount()),
+                        String.valueOf(detail.getAddedToCartCount()),
+                        String.valueOf(detail.getOrderCount()),
+                        String.valueOf(detail.getOrderQuantity()),
+                        (detail.getOrderViewPercentage() != null) ?
+                                detail.getOrderViewPercentage().toString() : "N/a"
+
+                );
+                csvPrinter.printRecord(data);
+            }
+            csvPrinter.flush();
+        } catch (Exception e) {
+            System.out.println("Writing CSV error!");
+           throw new RuntimeException(e);
+        }
     }
 }
