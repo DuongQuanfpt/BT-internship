@@ -7,10 +7,15 @@ import finalproject.group1.BE.domain.services.ProductService;
 import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.request.ImportRequest;
+import finalproject.group1.BE.web.dto.request.product.ProductStatisticCSVRequest;
+import finalproject.group1.BE.web.dto.request.product.ProductStatisticRequest;
 import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
+import finalproject.group1.BE.web.dto.response.product.ProductStatisticDetailResponse;
+import finalproject.group1.BE.web.dto.response.product.ProductStatisticResponse;
 import finalproject.group1.BE.web.exception.ValidationException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +26,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -70,6 +77,31 @@ public class ProductController {
         }
         ProductDetailResponse response = productService.getProductDetails(sku,loginUserId);
         return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/statistic")
+    public ResponseEntity getProductStatistic(@RequestBody @Valid ProductStatisticRequest request,
+                                              BindingResult bindingResult,
+                                              Pageable pageable) {
+        if (bindingResult.hasErrors()){
+            throw new ValidationException(bindingResult);
+        }
+        ProductStatisticResponse response = productService.getStatistic(pageable,request.getDate());
+        return ResponseEntity.ok().body(ResponseDTO.success(response));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/statistic-csv")
+    public void downloadProductStatisticAsCSV(@RequestBody @Valid ProductStatisticCSVRequest request
+            , HttpServletResponse response) {
+        try {
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment; file=report.csv");
+            productService.statisticToCSV(response.getWriter(),request.getDatas());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
