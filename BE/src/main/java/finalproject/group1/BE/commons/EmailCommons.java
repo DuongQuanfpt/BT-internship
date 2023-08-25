@@ -1,8 +1,8 @@
 package finalproject.group1.BE.commons;
 
+import finalproject.group1.BE.web.exception.CustomRuntimeException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -31,7 +31,7 @@ public class EmailCommons {
             helper.setText(text,true);
             emailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new RuntimeException(e);
+            throw new CustomRuntimeException(e.getMessage());
         }
     }
 

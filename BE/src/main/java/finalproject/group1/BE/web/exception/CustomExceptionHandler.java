@@ -65,6 +65,12 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(CustomRuntimeException.class)
+    public ResponseEntity RuntimeExceptionHandler(CustomRuntimeException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","RuntimeException", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 
     /**
      * Handle for validate exception, return error message

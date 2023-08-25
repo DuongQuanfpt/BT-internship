@@ -1,5 +1,6 @@
 package finalproject.group1.BE.commons;
 
+import finalproject.group1.BE.web.exception.CustomRuntimeException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -7,6 +8,9 @@ import java.io.IOException;
 import java.nio.file.*;
 
 public class FileCommons {
+    private FileCommons() {
+    }
+
     /**
      * upload image for category
      *
@@ -29,7 +33,7 @@ public class FileCommons {
             String destinationPath = uploadDirectory + File.separator + fileName;
             return destinationPath.substring(destinationPath.lastIndexOf(File.separator) + 1);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomRuntimeException(e.getMessage());
         }
     }
 
@@ -47,7 +51,7 @@ public class FileCommons {
                 Files.delete(resolvedFilePath);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomRuntimeException(e.getMessage());
         }
     }
 

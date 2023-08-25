@@ -251,7 +251,7 @@ public class ProductService {
             }
 
             String content = String.format(Constants.FAVORITE_PRODUCT_DELETE_CONTENT, deletedProduct.getOldSku());
-            emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_DElETE_SUBJECT, content);
+            emailCommons.sendSimpleMessage(userEmails, Constants.FAVORITE_PRODUCT_DELETE_SUBJECT, content);
         }
     }
 

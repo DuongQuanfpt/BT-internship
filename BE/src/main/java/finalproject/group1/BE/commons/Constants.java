@@ -1,11 +1,8 @@
 package finalproject.group1.BE.commons;
 
-import lombok.NoArgsConstructor;
-
 /**
  * contain project static value
  */
-@NoArgsConstructor
 public final class Constants {
     public static final String VALID_DATE_FORMAT = "yyyy-MM-dd";
     public static final String VALID_EMAIL_PATERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
@@ -28,6 +25,9 @@ public final class Constants {
     public static final String PRODUCT_NOT_AVAILABLE = "%s no longer available";
     public static final String FAVORITE_PRODUCT_UPDATE_SUBJECT = "Favorite product updated";
     public static final String FAVORITE_PRODUCT_UPDATE_CONTENT = "%s has been updated";
-    public static final String FAVORITE_PRODUCT_DElETE_SUBJECT = "Favorite product removed";
+    public static final String FAVORITE_PRODUCT_DELETE_SUBJECT = "Favorite product removed";
     public static final String FAVORITE_PRODUCT_DELETE_CONTENT = "%s has been removed";
+
+    private Constants(){
+    }
 }

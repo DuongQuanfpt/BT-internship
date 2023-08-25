@@ -19,6 +19,7 @@ import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.*;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
 import finalproject.group1.BE.web.security.JwtHelper;
+import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
