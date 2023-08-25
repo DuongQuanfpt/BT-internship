@@ -8,9 +8,8 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import finalproject.group1.BE.web.config.GoogleDriveConfig;
-import finalproject.group1.BE.web.exception.CustomRuntimeException;
+import finalproject.group1.BE.web.exception.*;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
-import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,7 +56,7 @@ public class GoogleDriveCommons {
                             )
                             .setFields("id").execute();
                 } catch (IOException e) {
-                    throw new CustomRuntimeException(e.getMessage());
+                    throw new CustomIOException(e.getMessage());
                 }
                 return uploadFile.getId();
             }
@@ -97,7 +96,7 @@ public class GoogleDriveCommons {
                     .execute()
                     .getId();
         } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
+            throw new CustomIOException(e.getMessage());
         }
     }
 
@@ -123,7 +122,7 @@ public class GoogleDriveCommons {
                     .setFields("nextPageToken, files(id, name)")
                     .execute();
         } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
+            throw new CustomIOException(e.getMessage());
         }
 
         if (!result.isEmpty()) {
@@ -138,10 +137,10 @@ public class GoogleDriveCommons {
             googleDriveConfig.getDrive().files().delete(fileId).execute();
         } catch (GoogleJsonResponseException e) {
             if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
-                throw new CustomRuntimeException(e.getMessage());
+                throw new GoogleDriveException(e.getMessage());
             }
         } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
+            throw new CustomIOException(e.getMessage());
         }
 
     }
@@ -154,11 +153,11 @@ public class GoogleDriveCommons {
                         .get(id).executeMediaAndDownloadTo(outputStream);
             } catch (HttpResponseException e) {
                 if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
-                    throw new CustomRuntimeException(e.getMessage());
+                    throw new GoogleDriveException(e.getMessage());
                 }
                 throw new NotFoundException("File not found on drive");
             } catch (IOException e) {
-                throw new CustomRuntimeException(e.getMessage());
+                throw new CustomIOException(e.getMessage());
             }
         }
     }
@@ -169,11 +168,11 @@ public class GoogleDriveCommons {
             return googleDriveConfig.getDrive().files().get(fileId).execute();
         } catch (GoogleJsonResponseException e) {
             if (e.getStatusCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
-                throw new CustomRuntimeException(e.getMessage());
+                throw new GoogleDriveException(e.getMessage());
             }
             throw new NotFoundException("File not found");
         } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
+            throw new CustomIOException(e.getMessage());
         }
 
     }

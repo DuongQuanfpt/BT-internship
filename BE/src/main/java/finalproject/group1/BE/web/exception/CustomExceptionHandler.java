@@ -1,6 +1,7 @@
 package finalproject.group1.BE.web.exception;
 
 import finalproject.group1.BE.web.dto.response.error.ErrorResponse;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,9 +66,20 @@ public class CustomExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(CustomRuntimeException.class)
-    public ResponseEntity RuntimeExceptionHandler(CustomRuntimeException exception, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse("400","RuntimeException", exception.getMessage());
+    @ExceptionHandler(CustomMessagingException.class)
+    public ResponseEntity CustomMessagingExceptionHandler(CustomMessagingException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","MessagingException", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    @ExceptionHandler(CustomIOException.class)
+    public ResponseEntity CustomMIOExceptionHandler(CustomIOException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","IOException", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(GoogleDriveException.class)
+    public ResponseEntity GoogleDriveExceptionHandler(GoogleDriveException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","GoogleDriveException", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

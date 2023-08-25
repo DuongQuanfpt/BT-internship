@@ -28,6 +28,5 @@ public final class Constants {
     public static final String FAVORITE_PRODUCT_DELETE_SUBJECT = "Favorite product removed";
     public static final String FAVORITE_PRODUCT_DELETE_CONTENT = "%s has been removed";
 
-    private Constants(){
-    }
+
 }

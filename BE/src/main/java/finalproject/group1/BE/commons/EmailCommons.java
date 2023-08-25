@@ -1,6 +1,6 @@
 package finalproject.group1.BE.commons;
 
-import finalproject.group1.BE.web.exception.CustomRuntimeException;
+import finalproject.group1.BE.web.exception.CustomMessagingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class EmailCommons {
             helper.setText(text,true);
             emailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new CustomRuntimeException(e.getMessage());
+            throw new CustomMessagingException(e.getMessage());
         }
     }
 
