@@ -27,6 +27,8 @@ public final class Constants {
     public static final String FAVORITE_PRODUCT_UPDATE_CONTENT = "%s has been updated";
     public static final String FAVORITE_PRODUCT_DELETE_SUBJECT = "Favorite product removed";
     public static final String FAVORITE_PRODUCT_DELETE_CONTENT = "%s has been removed";
-
-
+    public static final String CART_NOT_EXIST = "Cart does not exist !!!";
+    public static final String ILLEGAL_ARGUMENT = "IllegalArgument";
+    private Constants() {
+    }
 }

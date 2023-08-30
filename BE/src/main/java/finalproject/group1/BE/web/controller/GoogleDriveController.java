@@ -26,7 +26,7 @@ public class GoogleDriveController {
     }
 
     @GetMapping(value = "/dowload/{id}")
-    public ResponseEntity dowloadFile(@PathVariable(value = "id") String id
+    public ResponseEntity<ResponseDTO> dowloadFile(@PathVariable(value = "id") String id
             , HttpServletResponse response) throws IOException {
 
         googleDriveCommons.downloadFile(id, response.getOutputStream());
@@ -35,7 +35,7 @@ public class GoogleDriveController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteFile(@PathVariable(value = "id") String id) {
+    public ResponseEntity<ResponseDTO> deleteFile(@PathVariable(value = "id") String id) {
         googleDriveCommons.deleteFileOrFolder(id);
         return ResponseEntity.ok(ResponseDTO.build().withMessage("OK")
                 .withHttpStatus(HttpStatus.OK));

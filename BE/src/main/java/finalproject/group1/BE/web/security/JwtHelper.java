@@ -13,20 +13,19 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtHelper {
     @Value("${jwt.secret-key}")
     private String secretKey;
 
-    private final int DURATION = 1000 * 60 * 60 * 10; //10h
+    private static final int DURATION = 1000 * 60 * 60 * 10; //10h
 
     public String createToken(UserDetails userDetails) {
         HashMap<String,Object> claims = new HashMap<>();
         claims.put("role",userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.toString())
-                .collect(Collectors.toList()));
+                .toList());
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -42,13 +41,11 @@ public class JwtHelper {
 
     public String extractEmail(String token) {
 
-//        return extractClaim(token, Claims::getSubject);
         return extractAllClaims(token).getSubject();
     }
 
     public Date extractExpiration(String token) {
 
-//        return extractClaim(token, Claims::getExpiration);
         return  extractAllClaims(token).getExpiration();
     }
 
@@ -58,12 +55,9 @@ public class JwtHelper {
 
     public Boolean validateToken(String token, User userDetails) {
         final String username = extractEmail(token);
-        if((username.equals(userDetails.getUsername()) && !isTokenExpired(token)
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token)
                 && userDetails.getStatus() != UserStatus.LOCKED)
-                && userDetails.getDeleteFlag() != DeleteFlag.DELETED){
-            return true;
-        }
-        return false;
+                && userDetails.getDeleteFlag() != DeleteFlag.DELETED;
     }
 
 }

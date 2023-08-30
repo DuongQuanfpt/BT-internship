@@ -6,19 +6,17 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 /**
  * DTO wrapper response for all APIs.<br>
  * Format will be: { code: ..., message: ..., data: ... }
  * complete swagger document and validation
  *
- * @param <T> data type mixed
  */
 @Setter
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseDTO<T> {
+public class ResponseDTO {
     /** HTTP Status */
     @JsonIgnore
     private HttpStatus httpStatus = HttpStatus.OK;
@@ -37,30 +35,24 @@ public class ResponseDTO<T> {
     /** Response Message */
     private String message = "OK";
 
-    /** data */
-    private T data;
-
     /**
      * Create new instant of ResponseDto.
      *
-     * @param <T> data type mixed
      * @return new instant
      */
-    public static <T> ResponseDTO<T> build() {
-        return new ResponseDTO<>();
+    public static ResponseDTO build() {
+        return new ResponseDTO();
     }
 
     /**
      * success response.
      *
-     * @param data data
      * @return ResponseDto
      */
-    public static <T> ResponseDTO<T> success(T data) {
-        ResponseDTO<T> res = new ResponseDTO<T>();
+    public static ResponseDTO success() {
+        ResponseDTO res = new ResponseDTO();
         res.httpStatus = HttpStatus.OK;
         res.status = res.httpStatus.value();
-        res.data = data;
         return res;
     }
 
@@ -70,20 +62,9 @@ public class ResponseDTO<T> {
      * @param httpStatus http code
      * @return ResponseDto
      */
-    public ResponseDTO<T> withHttpStatus(HttpStatus httpStatus) {
+    public ResponseDTO withHttpStatus(HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
         this.status = httpStatus.value();
-        return this;
-    }
-
-    /**
-     * Set data for the response.
-     *
-     * @param data response data
-     * @return ResponseDto
-     */
-    public ResponseDTO<T> withData(T data) {
-        this.data = data;
         return this;
     }
 
@@ -93,7 +74,7 @@ public class ResponseDTO<T> {
      * @param httpHeaders the headers
      * @return ResponseDto
      */
-    public ResponseDTO<T> withHttpHeaders(HttpHeaders httpHeaders) {
+    public ResponseDTO withHttpHeaders(HttpHeaders httpHeaders) {
         this.headers = httpHeaders;
         return this;
     }
@@ -104,7 +85,7 @@ public class ResponseDTO<T> {
      * @param message the messages
      * @return ResponseDto
      */
-    public ResponseDTO<T> withMessage(String message) {
+    public ResponseDTO withMessage(String message) {
         this.message = message;
         return this;
     }
@@ -116,18 +97,10 @@ public class ResponseDTO<T> {
      * @param message the message
      * @return ResponseDto
      */
-    public ResponseDTO<T> withMessage(String code, String message) {
+    public ResponseDTO withMessage(String code, String message) {
         this.code = code;
         this.message = message;
         return this;
     }
 
-    /**
-     * Convert to standard ResponseEntity.
-     *
-     * @return ResponseEntity
-     */
-    public ResponseEntity<ResponseDTO<T>> toResponseEntity() {
-        return new ResponseEntity<ResponseDTO<T>>(this, this.httpStatus);
-    }
 }

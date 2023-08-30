@@ -6,6 +6,7 @@ import finalproject.group1.BE.commons.Constants;
 import finalproject.group1.BE.domain.entities.User;
 import finalproject.group1.BE.domain.repository.UserRepository;
 import finalproject.group1.BE.web.dto.response.error.ErrorResponse;
+import finalproject.group1.BE.web.exception.NotFoundException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -58,7 +59,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User user = userRepository.findByEmail(email).get();
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
             if (jwtHelper.validateToken(token, user)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null
@@ -84,8 +85,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         response.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         response.setStatus(httpStatus);
-//        Map<String, ErrorMessage> map = new HashMap<>();
-//        map.put("error", customError);
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         response.getOutputStream().print(mapper.writeValueAsString(customError));

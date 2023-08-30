@@ -19,8 +19,7 @@ import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.*;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
 import finalproject.group1.BE.web.security.JwtHelper;
-import jakarta.mail.MessagingException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -54,17 +53,18 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
 
-    private UserRepository userRepository;
-    private ChangedPasswordTokenRepository tokenRepository;
-    private EmailCommons emailCommons;
-    private ModelMapper modelMapper;
-    private PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
-    private JwtHelper jwtHelper;
-    private RedisTemplate<String, String> redisTemplate;
+    private Random random = new Random();
+    private final UserRepository userRepository;
+    private final ChangedPasswordTokenRepository tokenRepository;
+    private final EmailCommons emailCommons;
+    private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtHelper jwtHelper;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional
     public void saveUser(UserRegisterRequest registerRequest) {
@@ -104,7 +104,6 @@ public class UserService {
         //save token to redis server
         redisTemplate.opsForValue().set(user.getEmail(), token);
         redisTemplate.expireAt(user.getEmail(), jwtHelper.extractExpiration(token));
-        System.out.println(redisTemplate.opsForValue().get(user.getEmail()));
 
         return new UserLoginResponse(token);
     }
@@ -250,10 +249,9 @@ public class UserService {
 
         User user = passwordToken.getOwner();
         //generate a random password for user
-        Random rnd = new Random();
         StringBuilder newPassword = new StringBuilder(RandomString.make(10));
-        newPassword.append((char) ('A' + rnd.nextInt(26)));//password must contain a uppercase char
-        newPassword.append(rnd.nextInt(10));//password must contain a number
+        newPassword.append((char) ('A' + random.nextInt(26)));//password must contain a uppercase char
+        newPassword.append(random.nextInt(10));//password must contain a number
 
         user.setPassword(passwordEncoder.encode(newPassword));
 
@@ -274,11 +272,10 @@ public class UserService {
      */
     @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest, Authentication authentication) {
-        User loginUser = null;
-        if (authentication != null) {  //check if there are user login
-            loginUser = (User) authentication.getPrincipal();
+        if (authentication == null) {  //check if there are user login
+            throw new NotFoundException("user ko ton tai");
         }
-
+        User loginUser  = (User) authentication.getPrincipal();
         // Verify the old password
         String oldPassword = changePasswordRequest.getOldPassword();
         if (!passwordEncoder.matches(oldPassword, loginUser.getPassword())) {
@@ -319,11 +316,10 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Authentication authentication) {
-        User loginUser = null;
-        if (authentication != null) {  //check if there are user login
-            loginUser = (User) authentication.getPrincipal();
+        if (authentication == null) {  //check if there are user login
+           throw new NotFoundException("user ko ton tai");
         }
-
+        User loginUser  = (User) authentication.getPrincipal();
         //update user information
         loginUser.setOldLoginId(loginUser.getEmail());
         loginUser.setEmail(null);
@@ -334,7 +330,7 @@ public class UserService {
 
         //sent reset password email to user
         String[] toEmails = {loginUser.getOldLoginId()};
-        String emailContent = String.format(Constants.DELETE_USER_EMAIL_CONTENT, loginUser.getUserName());
+        String emailContent = String.format(Constants.DELETE_USER_EMAIL_CONTENT, loginUser.getName());
         emailCommons.sendSimpleMessage(toEmails, Constants.DELETE_USER_EMAIL_SUBJECT, emailContent);
     }
 
@@ -349,7 +345,7 @@ public class UserService {
             List<User> userList = csvUsers(csvFile.getInputStream());
             userRepository.saveAll(userList);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomIOException(e.getMessage());
         }
     }
 
@@ -386,13 +382,13 @@ public class UserService {
             return userList;
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+            throw new CustomIOException("fail to parse CSV file: " + e.getMessage());
         }
     }
 
-    private User getUserFromCSVRecord(CSVRecord record, ErrorResponse errorResponse) {
+    private User getUserFromCSVRecord(CSVRecord csvRecord, ErrorResponse errorResponse) {
         ErrorResponse response = new ErrorResponse("400"
-                , "Csv Validation", "At record " + record.getRecordNumber());
+                , "Csv Validation", "At record " + csvRecord.getRecordNumber());
         String email;
         String password;
         String userName;
@@ -400,11 +396,11 @@ public class UserService {
         String stringRole;
         //get data from csv file
         try {
-            email = record.get("email");
-            password = record.get("password");
-            userName = record.get("username");
-            dob = record.get("DoB");
-            stringRole = record.get("role").toUpperCase();
+            email = csvRecord.get("email");
+            password = csvRecord.get("password");
+            userName = csvRecord.get("username");
+            dob = csvRecord.get("DoB");
+            stringRole = csvRecord.get("role").toUpperCase();
             //skip empty line
             if (email.isBlank() && password.isBlank() && userName.isBlank()
                     && dob.isBlank() && stringRole.isBlank()) {
@@ -419,8 +415,7 @@ public class UserService {
             role = Role.valueOf(stringRole);
         } catch (java.lang.IllegalArgumentException exception) {
             response.getDetails().add(new ErrorResponse("400"
-                    , "NotFound", "role " + record.get("role") + " not found"));
-//            throw new NotFoundException("role " + record.get("role") + " not found");
+                    , "NotFound", "role " + csvRecord.get("role") + " not found"));
         }
         //validate data
         validateUser(email, password, userName, dob, response);
@@ -445,27 +440,23 @@ public class UserService {
             , String dob, ErrorResponse response) {
         if (!ValidateCommons.isValidEmail(email) || email.length() > 255) {
             response.getDetails().add(new ErrorResponse("400",
-                    "IllegalArgument", "invalid email "));
-//            throw new IllegalArgumentException("Record invalid email : " + email);
+                    Constants.ILLEGAL_ARGUMENT, "invalid email "));
         }
 
         if (!ValidateCommons.hasUpperCaseAndNumber(password) ||
                 password.length() < 8 || password.length() > 32) {
             response.getDetails().add(new ErrorResponse("400",
-                    "IllegalArgument", "invalid password "));
-//            throw new IllegalArgumentException("invalid password");
+                    Constants.ILLEGAL_ARGUMENT, "invalid password "));
         }
 
         if (userName.length() < 8 || userName.length() > 255) {
             response.getDetails().add(new ErrorResponse("400",
-                    "IllegalArgument", "invalid username "));
-//            throw new IllegalArgumentException("invalid name : " + userName);
+                    Constants.ILLEGAL_ARGUMENT, "invalid username "));
         }
 
         if (!ValidateCommons.isValidDate(dob)) {
             response.getDetails().add(new ErrorResponse("400",
-                    "IllegalArgument", "invalid date :" + dob));
-//            throw new IllegalArgumentException("invalid date : " + dob);
+                    Constants.ILLEGAL_ARGUMENT, "invalid date :" + dob));
         }
 
         Optional<User> existUser = userRepository.findByEmail(email);
@@ -473,11 +464,9 @@ public class UserService {
             if (existUser.get().getStatus() == UserStatus.LOCKED) {
                 response.getDetails().add(new ErrorResponse("400",
                         "ExistException", "account is locked "));
-//                throw new ExistException("account is locked");
             } else {
                 response.getDetails().add(new ErrorResponse("400",
                         "ExistException", "account already exist"));
-//                throw new ExistException("account already exist");
             }
 
         }

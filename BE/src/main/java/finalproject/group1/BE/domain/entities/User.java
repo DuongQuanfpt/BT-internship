@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -49,12 +50,12 @@ public class User implements UserDetails {
     private String oldLoginId;
 
     @OneToOne(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private ChangedPasswordToken changedPasswordTokens;
+    private  ChangedPasswordToken changedPasswordTokens;
 
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
+    private  List<Order> orders = new ArrayList<>();
 
-    public String getUserName() {
+    public String getName() {
         return userName;
     }
 
@@ -91,5 +92,15 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return !deleteFlag.isDeleteFlag();
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.defaultWriteObject();
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
     }
 }

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FileExtensionValidator implements ConstraintValidator<ValidFileExtension, Object> {
     String validExtension;
+
     @Override
     public void initialize(ValidFileExtension constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);
@@ -20,17 +21,18 @@ public class FileExtensionValidator implements ConstraintValidator<ValidFileExte
     public boolean isValid(Object object, ConstraintValidatorContext constraintValidatorContext) {
         AtomicBoolean isValid = new AtomicBoolean(false);
 
-        if(object instanceof MultipartFile){
-           MultipartFile multipartFile = (MultipartFile) object;
-            if(multipartFile.getOriginalFilename().endsWith(validExtension)){
-               isValid.set(true);
+        if (object instanceof MultipartFile) {
+            MultipartFile multipartFile = (MultipartFile) object;
+            String fileName=multipartFile.getOriginalFilename();
+            if (fileName != null && fileName.endsWith(validExtension)) {
+                isValid.set(true);
             }
         } else if (object instanceof List) {
             List<Object> objects = (List<Object>) object;
             objects.stream().forEach(o -> {
-                if (o instanceof MultipartFile){
+                if (o instanceof MultipartFile) {
                     MultipartFile multipartFile = (MultipartFile) o;
-                    if(multipartFile.getOriginalFilename().endsWith(validExtension)){
+                    if (multipartFile.getOriginalFilename().endsWith(validExtension)) {
                         isValid.set(true);
                     }
                 }

@@ -1,12 +1,10 @@
 package finalproject.group1.BE.web.controller;
 
-import com.google.api.services.drive.model.File;
-import finalproject.group1.BE.commons.EmailCommons;
-import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.services.CategoryService;
 import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
 import finalproject.group1.BE.web.dto.request.category.UpdateCategoryRequest;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
 import finalproject.group1.BE.web.dto.response.category.CategoryListResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
 import finalproject.group1.BE.web.exception.ValidationException;
@@ -19,8 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 
 @RestController
@@ -30,15 +26,15 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping("/search")
-    public ResponseEntity getAllCategories() {
+    public ResponseEntity<ResponseDTO> getAllCategories() {
         List<CategoryListResponse> response = categoryService.getAllCategories();
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/create", consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity addCategory(@Valid @ModelAttribute CreateCategoryRequest request) {
+    public ResponseEntity<ResponseDTO> addCategory(@Valid @ModelAttribute CreateCategoryRequest request) {
         categoryService.createCategory(request, new Category());
         return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
     }
@@ -46,7 +42,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(value = "/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity updateCategory(@PathVariable(value = "id") int id
+    public ResponseEntity<ResponseDTO> updateCategory(@PathVariable(value = "id") int id
             , @Valid @ModelAttribute UpdateCategoryRequest request
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()){
@@ -58,7 +54,7 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity deleteCategory(@PathVariable(value = "id") int id) {
+    public ResponseEntity<ResponseDTO> deleteCategory(@PathVariable(value = "id") int id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok().body(ResponseDTO.build().withMessage("OK").withHttpStatus(HttpStatus.OK));
     }

@@ -1,7 +1,6 @@
 package finalproject.group1.BE.web.exception;
 
 import finalproject.group1.BE.web.dto.response.error.ErrorResponse;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,66 +19,73 @@ import java.util.List;
 @RestControllerAdvice
 public class CustomExceptionHandler {
     @ExceptionHandler(ExistException.class)
-    public ResponseEntity ExistExceptionHandler(ExistException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> existExceptionHandler(ExistException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","Already Exist", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(CsvValidateException.class)
-    public ResponseEntity CsvExceptionHandler(CsvValidateException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> csvExceptionHandler(CsvValidateException exception, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getErrorResponse());
     }
 
     @ExceptionHandler({DisabledException.class, LockedException.class})
-    public ResponseEntity DisabledAndLockedHandler(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> disabledAndLockedHandler(Exception exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("401","","User have been deleted");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
-    public ResponseEntity BadCredentialHandler(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> badCredentialHandler(Exception exception, HttpServletRequest request) {
+        exception.printStackTrace();
         ErrorResponse response = new ErrorResponse("401","Bad credential","Incorrect email or password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity NotFoundHandler(NotFoundException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> notFoundHandler(NotFoundException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","Not Found",exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(UserLockException.class)
-    public ResponseEntity UserLockHandler(UserLockException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> userLockHandler(UserLockException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","locked","user locked");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(DeleteCategoryException.class)
-    public ResponseEntity DeleteCategoryHandler(DeleteCategoryException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> deleteCategoryHandler(DeleteCategoryException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity IllegalArgumentHandler(IllegalArgumentException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> illegalArgumentHandler(IllegalArgumentException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","Illegal Argument", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(CustomMessagingException.class)
-    public ResponseEntity CustomMessagingExceptionHandler(CustomMessagingException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> customMessagingExceptionHandler(CustomMessagingException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","MessagingException", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     @ExceptionHandler(CustomIOException.class)
-    public ResponseEntity CustomMIOExceptionHandler(CustomIOException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> customMIOExceptionHandler(CustomIOException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","IOException", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(GoogleDriveException.class)
-    public ResponseEntity GoogleDriveExceptionHandler(GoogleDriveException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> googleDriveExceptionHandler(GoogleDriveException exception, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse("400","GoogleDriveException", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(CustomInterruptedException.class)
+    public ResponseEntity<ErrorResponse> customInterruptedExceptionHandler(CustomInterruptedException exception, HttpServletRequest request) {
+        ErrorResponse response = new ErrorResponse("400","CustomInterruptedException", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -92,7 +98,7 @@ public class CustomExceptionHandler {
      * @return response
      */
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity ValidationHandler(ValidationException ex) {
+    public ResponseEntity<ErrorResponse> validationHandler(ValidationException ex) {
         BindingResult bindingResult = ex.getBindingResult();
 
         ErrorResponse re = new ErrorResponse("400",

@@ -9,11 +9,12 @@ import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.request.ImportRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductStatisticCSVRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductStatisticRequest;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
 import finalproject.group1.BE.web.dto.response.product.ProductDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductListResponse;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
-import finalproject.group1.BE.web.dto.response.product.ProductStatisticDetailResponse;
 import finalproject.group1.BE.web.dto.response.product.ProductStatisticResponse;
+import finalproject.group1.BE.web.exception.CustomIOException;
 import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ public class ProductController {
     private final ProductFavoriteService favoriteProductService;
 
     @PostMapping("/favorite/{productId}")
-    public ResponseEntity addProductToFavorite(@PathVariable("productId") int productId
+    public ResponseEntity<ResponseDTO> addProductToFavorite(@PathVariable("productId") int productId
             , Authentication authentication){
         User user = (User) authentication.getPrincipal();
         favoriteProductService.save(user.getId(),productId);
@@ -46,18 +47,18 @@ public class ProductController {
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
     }
     @PostMapping("/search")
-    public ResponseEntity getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
+    public ResponseEntity<ResponseDataDTO<ProductListResponse>> getProductList(@RequestBody @Valid ProductListRequest productListRequest ,
                                          BindingResult bindingResult, Pageable pageable) {
         if(bindingResult.hasErrors()){
             throw new ValidationException(bindingResult);
         }
         ProductListResponse productListResponse = productService.getProductList(productListRequest,pageable);
-        return ResponseEntity.ok().body(ResponseDTO.success(productListResponse));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(productListResponse));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/import")
-    public ResponseEntity importProduct(@ModelAttribute @Valid ImportRequest request,
+    public ResponseEntity<ResponseDTO> importProduct(@ModelAttribute @Valid ImportRequest request,
                                      BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
@@ -68,7 +69,7 @@ public class ProductController {
     }
 
     @GetMapping("/{sku}")
-    public ResponseEntity getProductDetails(@PathVariable(value = "sku") String sku
+    public ResponseEntity<ResponseDataDTO<ProductDetailResponse>> getProductDetails(@PathVariable(value = "sku") String sku
             ,Authentication authentication) {
         Integer loginUserId = null;
         if(authentication != null) {
@@ -76,19 +77,19 @@ public class ProductController {
             loginUserId = loginUser.getId();
         }
         ProductDetailResponse response = productService.getProductDetails(sku,loginUserId);
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/statistic")
-    public ResponseEntity getProductStatistic(@RequestBody @Valid ProductStatisticRequest request,
+    public ResponseEntity<ResponseDataDTO<ProductStatisticResponse>> getProductStatistic(@RequestBody @Valid ProductStatisticRequest request,
                                               BindingResult bindingResult,
                                               Pageable pageable) {
         if (bindingResult.hasErrors()){
             throw new ValidationException(bindingResult);
         }
         ProductStatisticResponse response = productService.getStatistic(pageable,request.getDate());
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -100,15 +101,15 @@ public class ProductController {
             response.setHeader("Content-Disposition", "attachment; file=report.csv");
             productService.statisticToCSV(response.getWriter(),request.getDatas());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomIOException(e.getMessage());
         }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/create",consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity addProduct(@Valid @ModelAttribute ProductRequest request
-            , BindingResult bindingResult){
+    public ResponseEntity<ResponseDTO> addProduct(@Valid @ModelAttribute ProductRequest request
+            , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }
@@ -121,7 +122,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(value = "/{id}",consumes = { MediaType.APPLICATION_JSON_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity updateProduct(@PathVariable(name = "id") int id
+    public ResponseEntity<ResponseDTO> updateProduct(@PathVariable(name = "id") int id
             ,@Valid @ModelAttribute ProductRequest updateRequest
             ,BindingResult bindingResult){
 
@@ -136,7 +137,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity deleteProduct(@PathVariable(name = "id") int id){
+    public ResponseEntity<ResponseDTO> deleteProduct(@PathVariable(name = "id") int id){
 
         productService.delete(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
@@ -144,7 +145,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/remove-favorite/{productId}")
-    public ResponseEntity removeProductToFavorite(@PathVariable("productId") int productId
+    public ResponseEntity<ResponseDTO> removeProductToFavorite(@PathVariable("productId") int productId
             , Authentication authentication){
         User user = (User) authentication.getPrincipal();
         favoriteProductService.delete(user.getId(),productId);

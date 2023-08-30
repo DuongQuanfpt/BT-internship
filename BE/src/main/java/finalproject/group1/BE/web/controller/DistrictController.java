@@ -3,7 +3,9 @@ package finalproject.group1.BE.web.controller;
 import finalproject.group1.BE.domain.services.DistrictService;
 import finalproject.group1.BE.web.dto.request.district.DistrictRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
 import finalproject.group1.BE.web.dto.response.district.DistrictListResponse;
+import finalproject.group1.BE.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +25,11 @@ public class DistrictController {
     private DistrictService districtService;
 
     @GetMapping("/search")
-    public ResponseEntity getCitiesList(@RequestBody @Valid DistrictRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ResponseDataDTO<List<DistrictListResponse>>> getCitiesList(@RequestBody @Valid DistrictRequest request, BindingResult bindingResult) {
         if(bindingResult.hasErrors()){
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map( fieldError -> fieldError.getField() + " " +fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
+           throw new ValidationException(bindingResult);
         }
         List<DistrictListResponse> response = districtService.getDistrictByCityId(request);
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 }

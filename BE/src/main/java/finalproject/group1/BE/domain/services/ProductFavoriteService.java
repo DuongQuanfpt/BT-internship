@@ -27,8 +27,9 @@ public class ProductFavoriteService {
      */
     @Transactional
     public void save(int userId, int productId) {
-        productRepository.findByIdNotDeleted(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+        if(!productRepository.findByIdNotDeleted(productId).isPresent()){
+            throw new NotFoundException("Product not found");
+        }
 
         FavoriteProductId id = new FavoriteProductId();
         id.setUserId(userId);
@@ -50,8 +51,9 @@ public class ProductFavoriteService {
      */
     @Transactional
     public void delete(int userId, int productId){
-        productRepository.findByIdNotDeleted(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+        if(!productRepository.findByIdNotDeleted(productId).isPresent()){
+            throw new NotFoundException("Product not found");
+        }
 
         FavoriteProductId id = new FavoriteProductId();
         id.setUserId(userId);

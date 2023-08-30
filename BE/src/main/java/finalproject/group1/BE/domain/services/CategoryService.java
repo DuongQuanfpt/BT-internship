@@ -1,7 +1,5 @@
 package finalproject.group1.BE.domain.services;
 
-import finalproject.group1.BE.commons.FileCommons;
-
 import finalproject.group1.BE.commons.GoogleDriveCommons;
 import finalproject.group1.BE.domain.entities.Category;
 import finalproject.group1.BE.domain.entities.CategoryImg;
@@ -19,13 +17,11 @@ import finalproject.group1.BE.web.exception.DeleteCategoryException;
 import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +47,7 @@ public class CategoryService {
                     return response;
 
                 })
-                .collect(Collectors.toList());
+                .toList();
         return listCategoriesDTO;
     }
 
@@ -118,7 +114,7 @@ public class CategoryService {
         });
 
         List<Product> productList = productRepository.findByCategoryId(id);
-        if (productList.size() == 0) {
+        if (productList.isEmpty()) {
             //delete old image
             if(category.getCategoryImg() != null){
                 googleDriveCommons.deleteFileOrFolder(category.getCategoryImg().getImage().getPath());

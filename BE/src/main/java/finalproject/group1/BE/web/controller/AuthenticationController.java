@@ -1,15 +1,14 @@
 package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.UserService;
-import finalproject.group1.BE.web.dto.request.category.CreateCategoryRequest;
 import finalproject.group1.BE.web.dto.request.user.PasswordResetRequest;
 import finalproject.group1.BE.web.dto.request.user.UserLoginRequest;
 import finalproject.group1.BE.web.dto.request.user.UserPasswordRequest;
 import finalproject.group1.BE.web.dto.request.user.UserRegisterRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
 import finalproject.group1.BE.web.dto.response.user.UserLoginResponse;
 import finalproject.group1.BE.web.exception.ValidationException;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,7 @@ public class AuthenticationController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity userRegister(@RequestBody @Valid UserRegisterRequest registerRequest
+    public ResponseEntity<ResponseDTO> userRegister(@RequestBody @Valid UserRegisterRequest registerRequest
             , BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -39,18 +38,18 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity userLogin(@RequestBody @Valid UserLoginRequest loginRequest
+    public ResponseEntity<ResponseDTO> userLogin(@RequestBody @Valid UserLoginRequest loginRequest
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }
 
         UserLoginResponse response = userService.authenticate(loginRequest);
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PostMapping("/request-password")
-    public ResponseEntity requestPassword(@RequestBody @Valid UserPasswordRequest request
+    public ResponseEntity<ResponseDTO> requestPassword(@RequestBody @Valid UserPasswordRequest request
             , BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
@@ -62,7 +61,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity resetPassword(@RequestBody PasswordResetRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ResponseDTO> resetPassword(@RequestBody PasswordResetRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }

@@ -2,6 +2,8 @@ package finalproject.group1.BE.web.controller;
 
 import finalproject.group1.BE.domain.services.CityService;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
+import finalproject.group1.BE.web.dto.response.cart.CartAddResponse;
 import finalproject.group1.BE.web.dto.response.city.CityListResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,8 @@ public class CityController {
     private CityService cityService;
 
     @GetMapping("/search")
-    public ResponseEntity getCitiesList() {
+    public ResponseEntity<ResponseDataDTO<List<CityListResponse>>> getCitiesList() {
         List<CityListResponse> response = cityService.getAllCities();
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 }

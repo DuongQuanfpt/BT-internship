@@ -6,6 +6,7 @@ import finalproject.group1.BE.web.dto.request.ImportRequest;
 import finalproject.group1.BE.web.dto.request.user.UserListRequest;
 import finalproject.group1.BE.web.dto.request.user.UserUpdateRequest;
 import finalproject.group1.BE.web.dto.response.ResponseDTO;
+import finalproject.group1.BE.web.dto.response.ResponseDataDTO;
 import finalproject.group1.BE.web.dto.response.user.UserDetailResponse;
 import finalproject.group1.BE.web.dto.response.user.UserListResponse;
 import finalproject.group1.BE.web.exception.ValidationException;
@@ -29,26 +30,26 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/search")
-    public ResponseEntity getUserList(@RequestBody @Valid UserListRequest userListRequest,
+    public ResponseEntity<ResponseDataDTO<List<UserListResponse>>> getUserList(@RequestBody @Valid UserListRequest userListRequest,
                                       BindingResult bindingResult, Pageable pageable) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
         }
         List<UserListResponse> response = userService.getUserList(userListRequest, pageable);
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity getUserDetail(@PathVariable(value = "id") int id) {
+    public ResponseEntity<ResponseDataDTO<UserDetailResponse>> getUserDetail(@PathVariable(value = "id") int id) {
 
         UserDetailResponse response = userService.getUserDetails(id);
-        return ResponseEntity.ok().body(ResponseDTO.success(response));
+        return ResponseEntity.ok().body(ResponseDataDTO.success(response));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/lock/{id}")
-    public ResponseEntity lockUser(@PathVariable(value = "id") int id) {
+    public ResponseEntity<ResponseDTO> lockUser(@PathVariable(value = "id") int id) {
 
         userService.lockUser(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
@@ -57,7 +58,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("")
-    public ResponseEntity updateUser(@RequestBody @Valid UserUpdateRequest updateRequest,
+    public ResponseEntity<ResponseDTO> updateUser(@RequestBody @Valid UserUpdateRequest updateRequest,
                                      BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
@@ -70,7 +71,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/import")
-    public ResponseEntity importUser(@ModelAttribute @Valid ImportRequest request,
+    public ResponseEntity<ResponseDTO> importUser(@ModelAttribute @Valid ImportRequest request,
                                      BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult);
@@ -82,7 +83,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteUserByAdmin(@PathVariable(value = "id") int id) {
+    public ResponseEntity<ResponseDTO>  deleteUserByAdmin(@PathVariable(value = "id") int id) {
 
         userService.deleteUserByAdmin(id);
         return ResponseEntity.ok().body(ResponseDTO.build()
@@ -90,7 +91,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity deleteUser(Authentication authentication) {
+    public ResponseEntity<ResponseDTO>  deleteUser(Authentication authentication) {
         userService.deleteUser(authentication);
         return ResponseEntity.ok().body(ResponseDTO.build()
                 .withHttpStatus(HttpStatus.OK).withMessage("OK"));
@@ -98,7 +99,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PutMapping("/change-password")
-    public ResponseEntity changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest,
+    public ResponseEntity<ResponseDTO>  changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest,
                                          BindingResult bindingResult,
                                          Authentication authentication) {
         if (bindingResult.hasErrors()) {

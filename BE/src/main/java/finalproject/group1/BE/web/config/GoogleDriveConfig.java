@@ -13,6 +13,8 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import finalproject.group1.BE.web.exception.CustomIOException;
+import finalproject.group1.BE.web.exception.GoogleDriveException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -86,33 +88,9 @@ public class GoogleDriveConfig {
                     .setApplicationName(APPLICATION_NAME)
                     .build();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomIOException(e.getMessage());
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
+            throw new GoogleDriveException(e.getMessage());
         }
     }
-
-    //Config using service account
-//    @Bean
-//    public Drive getService() throws GeneralSecurityException, IOException {
-//        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-//        return new Drive.Builder(HTTP_TRANSPORT,
-//                JacksonFactory.getDefaultInstance(), googleCredential())
-//                .build();
-//    }
-//
-//    @Bean
-//    public GoogleCredential googleCredential() throws GeneralSecurityException, IOException {
-//        Collection<String> elenco = new ArrayList<String>();
-//        elenco.add("https://www.googleapis.com/auth/drive");
-//        HttpTransport httpTransport = new NetHttpTransport();
-//        JacksonFactory jsonFactory = new JacksonFactory();
-//        return new GoogleCredential.Builder()
-//                .setTransport(httpTransport)
-//                .setJsonFactory(jsonFactory)
-//                .setServiceAccountId("google-drive-demo@bt-internship.iam.gserviceaccount.com")
-//                .setServiceAccountScopes(elenco)
-//                .setServiceAccountPrivateKeyFromP12File(new File("C:\\Users\\admin\\Desktop\\bt-internship-2b9d20577195.p12"))
-//                .build();
-//    }
 }

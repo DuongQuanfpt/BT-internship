@@ -13,9 +13,8 @@ import finalproject.group1.BE.web.dto.request.product.ProductListRequest;
 import finalproject.group1.BE.web.dto.request.product.ProductRequest;
 import finalproject.group1.BE.web.dto.response.PageableDTO;
 import finalproject.group1.BE.web.dto.response.product.*;
-import finalproject.group1.BE.web.exception.ExistException;
+import finalproject.group1.BE.web.exception.*;
 import finalproject.group1.BE.web.exception.IllegalArgumentException;
-import finalproject.group1.BE.web.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -34,11 +33,9 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -91,7 +88,7 @@ public class ProductService {
                     response.setImageName(imageData.getName());
                     response.setImagePath(imageData.getPath());
                     return response;
-                }).collect(Collectors.toList());
+                }).toList();
 
         productListResponse.setProductResponses(productResponse);
         productListResponse.setPageableDTO(pageableDTO);
@@ -101,35 +98,31 @@ public class ProductService {
 
 
     public ProductDetailResponse getProductDetails(String sku, Integer loginUserId) {
-        Optional<Product> productDetail = Optional.ofNullable(productRepository.findBySku(sku).
-                orElseThrow(() -> new NotFoundException("Product not found with SKU: " + sku)));
+        Product productDetail = productRepository.findBySku(sku).orElseThrow(() -> new NotFoundException("Product not found with SKU: " + sku));
 
-        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.get().getId());
+        List<ImageData> imagesData = imageRepository.findDetailImages(productDetail.getId());
         ProductImageResponse productImageResponse = new ProductImageResponse();
-        productImageResponse.setName(imagesData.stream().map(imageData -> imageData.getName()).collect(Collectors.toList()));
-        productImageResponse.setPath(imagesData.stream().map(imageData -> imageData.getPath()).collect(Collectors.toList()));
+        productImageResponse.setName(imagesData.stream().map(imageData -> imageData.getName()).toList());
+        productImageResponse.setPath(imagesData.stream().map(imageData -> imageData.getPath()).toList());
 
         ProductDetailResponse productDetailsDTO = new ProductDetailResponse();
-        productDetailsDTO.setId(productDetail.get().getId());
-        productDetailsDTO.setSku(productDetail.get().getSku());
-        productDetailsDTO.setName(productDetail.get().getName());
-        productDetailsDTO.setDetailInfo(productDetail.get().getDetailInfo());
-        productDetailsDTO.setPrice(productDetail.get().getPrice());
+        productDetailsDTO.setId(productDetail.getId());
+        productDetailsDTO.setSku(productDetail.getSku());
+        productDetailsDTO.setName(productDetail.getName());
+        productDetailsDTO.setDetailInfo(productDetail.getDetailInfo());
+        productDetailsDTO.setPrice(productDetail.getPrice());
         productDetailsDTO.setImages(productImageResponse);
 
-        productViewService.save(productDetail.get().getId(), loginUserId);
+        productViewService.save(productDetail.getId(), loginUserId);
 
         return productDetailsDTO;
     }
 
+    @Transactional
     public void update(int id, ProductRequest updateRequest) {
-        long start = System.currentTimeMillis();
         Product product = productRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Product Not Found"));
         Product updatedProduct = save(updateRequest, product);
-
-        long end = System.currentTimeMillis();
-        System.out.println("update product : " + (end - start));
         //send email to users that flag this product as favorite
         List<ProductFavorite> favoriteProducts = favoriteProductRepository.findByIdProductId(id);
         String[] userEmails = favoriteProducts.stream().map(favoriteProduct -> {
@@ -206,7 +199,8 @@ public class ProductService {
             // save changes to db
             return productRepository.save(product);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            throw new CustomInterruptedException(e.getMessage());
         }
     }
 
@@ -261,7 +255,7 @@ public class ProductService {
             List<Product> productList = csvProducts(csvFile.getInputStream());
             productRepository.saveAll(productList);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CustomIOException(e.getMessage());
         }
     }
 
@@ -291,7 +285,7 @@ public class ProductService {
             return productList;
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+            throw new CustomIOException("fail to parse CSV file: " + e.getMessage());
         }
     }
 
@@ -315,7 +309,7 @@ public class ProductService {
             thumbnailFile = googleDriveCommons.getFileByUrl(csvRecord.get("thumbnail_img"));
             detailFiles = Arrays.stream(csvRecord.get("detail_img").split(","))
                     .map(url -> googleDriveCommons.getFileByUrl(url))
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (java.lang.IllegalArgumentException exception) {
             throw new IllegalArgumentException("invalid csv file for product import");
         }
@@ -418,7 +412,7 @@ public class ProductService {
             }
 
             return detailResponse;
-        }).collect(Collectors.toList());
+        }).toList();
 
         PageableDTO pageableDTO = new PageableDTO();
         pageableDTO.setPageNumber(productPage.getNumber());
@@ -530,9 +524,8 @@ public class ProductService {
                 csvPrinter.printRecord(data);
             }
             csvPrinter.flush();
-        } catch (Exception e) {
-            System.out.println("Writing CSV error!");
-           throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new CustomIOException(e.getMessage());
         }
     }
 }

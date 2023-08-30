@@ -108,7 +108,7 @@ public class OrderService {
             orderDetail.setTotalPrice(orderDetail.getPrice() * orderDetail.getQuantity());
 
             return orderDetail;
-        }).collect(Collectors.toList());
+        }).toList();
         orderDetailRepository.saveAll(newOrderDetails);
 
         //create order shipping detail
@@ -175,7 +175,7 @@ public class OrderService {
         //create response
         List<OrderResponse> orderResponses = result.stream().map(order -> {
             OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
-            orderResponse.setUsername(order.getOwner().getUserName());
+            orderResponse.setUsername(order.getOwner().getName());
             orderResponse.setShippingDistrict(order.getShippingDetail().getDistrict().getName());
             orderResponse.setShippingCity(order.getShippingDetail().getCity().getName());
             // set details response
@@ -194,11 +194,11 @@ public class OrderService {
 
                         return detailResponse;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             orderResponse.setDetails(detailResponses);
 
             return orderResponse;
-        }).collect(Collectors.toList());
+        }).toList();
 
         OrderSearchResponse response = new OrderSearchResponse();
         response.setOrders(orderResponses);
@@ -212,10 +212,10 @@ public class OrderService {
     @Transactional
     public void updateOrder(UpdateOrderRequest updateOrderRequest, Authentication authentication) {
         User loginUser = null;
-        if (authentication != null) {  //check if there are user login
-            loginUser = (User) authentication.getPrincipal();
+        if (authentication == null) {  //check if there are user login
+          throw new NotFoundException("login user not found");
         }
-
+        loginUser = (User) authentication.getPrincipal();
         if (OrderStatus.getOrderStatus(updateOrderRequest.getStatus()) == null) {
             throw new NotFoundException("Not Found Status !!!");
         }

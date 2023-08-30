@@ -21,7 +21,4 @@ public class City {
 
     @Column(name = "name", nullable = false)
     private String name;
-
-//    @OneToMany(mappedBy = "city")
-//    private List<District> districts= new ArrayList<>();
 }

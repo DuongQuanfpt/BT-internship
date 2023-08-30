@@ -17,7 +17,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Table(name = "Order_tbl")
 @Data
-public class Order {
+public class Order{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
